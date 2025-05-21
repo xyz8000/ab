@@ -1,0 +1,88 @@
+-- 1. Create tables
+
+CREATE TABLE Branch (
+    bname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    cname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10,2),
+    adate DATE,
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10,2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+-- 2. Insert sample data
+
+INSERT INTO Branch VALUES 
+('KAROLBAGH', 'DELHI'),
+('MGROAD', 'PUNE'),
+('CAMPUS', 'CHENNAI');
+
+INSERT INTO Customers VALUES 
+('Anil', 'DELHI'),
+('Sunita', 'PUNE'),
+('Ravi', 'CHENNAI'),
+('Meena', 'DELHI');
+
+INSERT INTO Deposit VALUES 
+(101, 'Anil', 'KAROLBAGH', 10000, '1999-01-10'),
+(102, 'Sunita', 'MGROAD', 15000, '1998-03-15'),
+(103, 'Ravi', 'CAMPUS', 8000, '1997-12-20'),
+(104, 'Meena', 'KAROLBAGH', 12000, '1999-05-05');
+
+INSERT INTO Borrow VALUES 
+(201, 'Anil', 'KAROLBAGH', 5000),
+(202, 'Sunita', 'MGROAD', 20000),
+(203, 'Meena', 'KAROLBAGH', 25000);
+
+-- 3. Queries
+
+-- Q1: Display amount for depositors living in the city where Anil is living
+SELECT d.cname, d.amount
+FROM Deposit d
+JOIN Customers c1 ON d.cname = c1.cname
+WHERE c1.city = (
+    SELECT city FROM Customers WHERE cname = 'Anil'
+);
+
+-- Q2: Display total loan and maximum loan taken from KAROLBAGH branch
+SELECT 
+    SUM(amount) AS total_loan, 
+    MAX(amount) AS max_loan
+FROM Borrow
+WHERE bname = 'KAROLBAGH';
+
+-- Q3: Display total deposit of customers having account date later than '1-jan-98'
+SELECT 
+    SUM(amount) AS total_deposit
+FROM Deposit
+WHERE adate > '1998-01-01';
+
+-- Q4: Display maximum deposit of customers living in PUNE
+SELECT 
+    MAX(d.amount) AS max_deposit
+FROM Deposit d
+JOIN Customers c ON d.cname = c.cname
+WHERE c.city = 'PUNE';
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

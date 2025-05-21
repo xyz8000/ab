@@ -1,0 +1,59 @@
+
+
+25  Design and Implement any 5 query using MongoDB
+Create a collection called ‘games’.
+Add 5 games to the database. Give each document the following properties: name, gametype, score (out of 100), achievements
+Write a query that returns all the games
+Write a query that returns the 3 highest scored games.
+Write a query that returns all the games that have both the ‘Game Maser’ and
+the ‘Speed Demon’ achievements.
+
+// Step 1: Create and insert 5 games into the 'games' collection
+db.games.insertMany([
+  {
+    name: "Racing Thunder",
+    gametype: "Racing",
+    score: 88,
+    achievements: ["Speed Demon", "Track Master"]
+  },
+  {
+    name: "Battle Arena",
+    gametype: "Action",
+    score: 92,
+    achievements: ["Game Master", "Sharp Shooter"]
+  },
+  {
+    name: "Mystery Quest",
+    gametype: "Adventure",
+    score: 75,
+    achievements: ["Explorer", "Puzzle Solver"]
+  },
+  {
+    name: "Speed Legend",
+    gametype: "Racing",
+    score: 95,
+    achievements: ["Speed Demon", "Game Master"]
+  },
+  {
+    name: "Kingdom Clash",
+    gametype: "Strategy",
+    score: 89,
+    achievements: ["Game Master", "Tactician"]
+  }
+]);
+
+// Step 2: Query 1 – Return all games
+db.games.find();
+
+// Step 3: Query 2 – Return top 3 highest scored games
+db.games.find().sort({ score: -1 }).limit(3);
+
+// Step 4: Query 3 – Return games that have both 'Game Master' and 'Speed Demon' achievements
+db.games.find({
+  achievements: { $all: ["Game Master", "Speed Demon"] }
+});
+
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

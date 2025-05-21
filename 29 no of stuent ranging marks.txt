@@ -1,0 +1,68 @@
+-- 1. Create the Student table
+CREATE TABLE Student (
+    roll_no INT,
+    course VARCHAR(100),
+    course_cod VARCHAR(20),
+    sem INT,
+    total_marks INT,
+    percentage DECIMAL(5,2)
+);
+
+-- 2. Insert sample data in one statement with lower values
+INSERT INTO Student (roll_no, course, course_cod, sem, total_marks, percentage) VALUES
+(101, 'Mathematics', 'MTH101', 1, 450, 65.5),
+(102, 'Mathematics', 'MTH101', 1, 400, 58.0),
+(103, 'Mathematics', 'MTH101', 1, 380, 54.3),
+(104, 'Mathematics', 'MTH101', 1, 320, 49.8),
+(105, 'Mathematics', 'MTH101', 1, 300, 45.4),
+(201, 'Physics', 'PHY102', 1, 480, 69.2),
+(202, 'Physics', 'PHY102', 1, 410, 61.7),
+(203, 'Physics', 'PHY102', 1, 350, 55.0),
+(204, 'Physics', 'PHY102', 1, 280, 44.6),
+(205, 'Physics', 'PHY102', 1, 260, 41.0);
+
+-- 3. Create the procedure
+DELIMITER $$
+
+CREATE PROCEDURE proc_CoursePercentageStats(IN p_course VARCHAR(100))
+BEGIN
+    DECLARE v_70_100 INT DEFAULT 0;
+    DECLARE v_60_69 INT DEFAULT 0;
+    DECLARE v_50_59 INT DEFAULT 0;
+    DECLARE v_below_50 INT DEFAULT 0;
+
+    -- Count students by percentage ranges
+    SELECT COUNT(*) INTO v_70_100
+    FROM Student
+    WHERE course = p_course AND percentage BETWEEN 70 AND 100;
+
+    SELECT COUNT(*) INTO v_60_69
+    FROM Student
+    WHERE course = p_course AND percentage BETWEEN 60 AND 69.99;
+
+    SELECT COUNT(*) INTO v_50_59
+    FROM Student
+    WHERE course = p_course AND percentage BETWEEN 50 AND 59.99;
+
+    SELECT COUNT(*) INTO v_below_50
+    FROM Student
+    WHERE course = p_course AND percentage < 50;
+
+    -- Return result as a table
+    SELECT 
+        p_course AS Course,
+        v_70_100 AS `70%-100%`,
+        v_60_69 AS `60%-69.99%`,
+        v_50_59 AS `50%-59.99%`,
+        v_below_50 AS `Below 50%`;
+END$$
+
+DELIMITER ;
+
+-- 4. Call the procedure for example courses
+CALL proc_CoursePercentageStats('Mathematics');
+CALL proc_CoursePercentageStats('Physics');
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

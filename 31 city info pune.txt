@@ -1,0 +1,58 @@
+-- 1. Create the table CityInfo
+CREATE TABLE CityInfo (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    area FLOAT,
+    total_population INT,
+    adults INT,
+    senior_citizens INT,
+    sex_ratio FLOAT,
+    avg_temp FLOAT,
+    avg_rainfall FLOAT,
+    longitude FLOAT,
+    latitude FLOAT
+);
+
+-- 2. Insert sample data
+INSERT INTO CityInfo 
+(name, area, total_population, adults, senior_citizens, sex_ratio, avg_temp, avg_rainfall, longitude, latitude)
+VALUES
+('Mumbai', 603.4, 20411000, 15000000, 3000000, 948.0, 27.2, 242.2, 72.8777, 19.0760),
+('Delhi', 1484.0, 31181376, 22000000, 5000000, 911.0, 25.0, 800.0, 77.1025, 28.7041),
+('Chennai', 426.0, 11000000, 8000000, 1000000, 986.0, 29.0, 1400.0, 80.2707, 13.0827),
+('Pune', 331.3, 7800000, 6000000, 800000, 915.0, 24.5, 722.0, 73.8567, 18.5204),
+('Kolkata', 205.0, 14900000, 11000000, 2000000, 947.0, 26.7, 1582.0, 88.3639, 22.5726);
+
+-- 3. Queries
+
+-- (1) Find the total population in Pune
+SELECT total_population
+FROM CityInfo
+WHERE name = 'Pune';
+
+-- (2) Return all cities with total population greater than 10 million
+SELECT name, total_population
+FROM CityInfo
+WHERE total_population > 10000000;
+
+-- (3) Return the average population for each city (trivially just each total in this structure)
+-- But assuming we want overall average:
+SELECT AVG(total_population) AS average_population
+FROM CityInfo;
+
+-- (4) Return the city with the minimum and maximum population
+-- Min population city
+SELECT name AS min_population_city, total_population
+FROM CityInfo
+ORDER BY total_population ASC
+LIMIT 1;
+
+-- Max population city
+SELECT name AS max_population_city, total_population
+FROM CityInfo
+ORDER BY total_population DESC
+LIMIT 1;
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

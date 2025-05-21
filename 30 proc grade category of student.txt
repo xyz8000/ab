@@ -1,0 +1,74 @@
+-- Create Stud_Marks table
+CREATE TABLE Stud_Marks (
+    name VARCHAR(100),
+    total_marks INT
+);
+
+-- Create Result table
+CREATE TABLE Result (
+    roll INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    class VARCHAR(50)
+);
+
+-- Stored Procedure to insert grade category based on marks
+DELIMITER $$
+
+CREATE PROCEDURE proc_Grade()
+BEGIN
+    DECLARE done INT DEFAULT FALSE;
+    DECLARE student_name VARCHAR(100);
+    DECLARE student_marks INT;
+    DECLARE grade VARCHAR(50);
+    
+    -- Cursor for looping through Stud_Marks
+    DECLARE cur CURSOR FOR
+        SELECT name, total_marks FROM Stud_Marks;
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET done = TRUE;
+
+    OPEN cur;
+
+    read_loop: LOOP
+        FETCH cur INTO student_name, student_marks;
+        IF done THEN
+            LEAVE read_loop;
+        END IF;
+        
+        -- Grade logic
+        IF student_marks BETWEEN 990 AND 1500 THEN
+            SET grade = 'Distinction';
+        ELSEIF student_marks BETWEEN 900 AND 989 THEN
+            SET grade = 'First Class';
+        ELSEIF student_marks BETWEEN 825 AND 899 THEN
+            SET grade = 'Higher Second Class';
+        ELSE
+            SET grade = 'No Grade';
+        END IF;
+        
+        -- Insert into Result table
+        INSERT INTO Result(name, class)
+        VALUES (student_name, grade);
+    END LOOP;
+
+    CLOSE cur;
+END$$
+
+DELIMITER ;
+
+-- Example Data
+INSERT INTO Stud_Marks (name, total_marks) VALUES
+('Alice', 995),
+('Bob', 905),
+('Charlie', 880),
+('David', 820),
+('Eva', 1001);
+
+-- Call the procedure
+CALL proc_Grade();
+
+-- View result
+SELECT * FROM Result;
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

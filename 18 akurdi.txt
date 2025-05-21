@@ -1,0 +1,117 @@
+-- 1. Create and use database (optional)
+CREATE DATABASE IF NOT EXISTS bankdb;
+USE bankdb;
+
+
+-- 3. Create tables with constraints
+
+CREATE TABLE Branch (
+    branch_name VARCHAR(50) PRIMARY KEY,
+    branch_city VARCHAR(50) NOT NULL,
+    assets DECIMAL(15,2) NOT NULL CHECK (assets >= 0)
+);
+
+CREATE TABLE Customer (
+    cust_name VARCHAR(50) PRIMARY KEY,
+    cust_street VARCHAR(100) NOT NULL,
+    cust_city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Account (
+    acc_no INT PRIMARY KEY,
+    branch_name VARCHAR(50) NOT NULL,
+    balance DECIMAL(15,2) NOT NULL CHECK (balance >= 0),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+CREATE TABLE Depositor (
+    cust_name VARCHAR(50) NOT NULL,
+    acc_no INT NOT NULL,
+    PRIMARY KEY (cust_name, acc_no),
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (acc_no) REFERENCES Account(acc_no)
+);
+
+CREATE TABLE Loan (
+    loan_no INT PRIMARY KEY,
+    branch_name VARCHAR(50) NOT NULL,
+    amount DECIMAL(15,2) NOT NULL CHECK (amount >= 0),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+CREATE TABLE Borrower (
+    cust_name VARCHAR(50) NOT NULL,
+    loan_no INT NOT NULL,
+    PRIMARY KEY (cust_name, loan_no),
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+);
+
+-- 4. Insert sample data
+
+INSERT INTO Branch VALUES
+('Akurdi', 'Pune', 5000000),
+('Nigdi', 'Pune', 4000000),
+('Hinjewadi', 'Pune', 3000000);
+
+INSERT INTO Customer VALUES
+('Rahul', 'MG Road', 'Pune'),
+('Aisha', 'FC Road', 'Pune'),
+('Sunil', 'Nigdi Road', 'Pune'),
+('Neha', 'Baner', 'Pune');
+
+INSERT INTO Account VALUES
+(101, 'Akurdi', 25000),
+(102, 'Nigdi', 15000),
+(103, 'Akurdi', 30000),
+(104, 'Hinjewadi', 10000);
+
+INSERT INTO Depositor VALUES
+('Rahul', 101),
+('Aisha', 102),
+('Sunil', 103),
+('Neha', 104);
+
+INSERT INTO Loan VALUES
+(201, 'Akurdi', 12000),
+(202, 'Nigdi', 14000),
+(203, 'Hinjewadi', 16000);
+
+INSERT INTO Borrower VALUES
+('Rahul', 201),
+('Aisha', 202),
+('Neha', 203);
+
+-- 5. Queries
+
+-- Query 1: Find all customers who have an account or loan or both
+SELECT DISTINCT cust_name FROM Depositor
+UNION
+SELECT DISTINCT cust_name FROM Borrower;
+
+-- Query 2: Find all customers who have both account and loan
+SELECT cust_name FROM Depositor
+INTERSECT
+SELECT cust_name FROM Borrower;
+
+-- If your SQL does not support INTERSECT, use INNER JOIN:
+
+/*
+SELECT d.cust_name
+FROM Depositor d
+JOIN Borrower b ON d.cust_name = b.cust_name;
+*/
+
+-- Query 3: Find all customers who have account but no loan
+SELECT cust_name FROM Depositor
+WHERE cust_name NOT IN (SELECT cust_name FROM Borrower);
+
+-- Query 4: Find average account balance at Akurdi branch
+SELECT AVG(balance) AS avg_balance_akurdi
+FROM Account
+WHERE branch_name = 'Akurdi';
+
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

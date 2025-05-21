@@ -1,0 +1,119 @@
+
+CREATE DATABASE IF NOT EXISTS bankdb;
+USE bankdb;
+
+
+-- Create Branch table
+CREATE TABLE Branch (
+    branch_name VARCHAR(50) PRIMARY KEY,
+    branch_city VARCHAR(50) NOT NULL,
+    assets DECIMAL(15,2) NOT NULL CHECK (assets >= 0)
+);
+
+-- Create Customer table
+CREATE TABLE Customer (
+    cust_name VARCHAR(50) PRIMARY KEY,
+    cust_street VARCHAR(100) NOT NULL,
+    cust_city VARCHAR(50) NOT NULL
+);
+
+-- Create Account table
+CREATE TABLE Account (
+    acc_no INT PRIMARY KEY,
+    branch_name VARCHAR(50),
+    balance DECIMAL(15,2) NOT NULL CHECK (balance >= 0),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+-- Create Depositor table
+CREATE TABLE Depositor (
+    cust_name VARCHAR(50),
+    acc_no INT,
+    PRIMARY KEY (cust_name, acc_no),
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (acc_no) REFERENCES Account(acc_no)
+);
+
+-- Create Loan table
+CREATE TABLE Loan (
+    loan_no INT PRIMARY KEY,
+    branch_name VARCHAR(50),
+    amount DECIMAL(15,2) NOT NULL CHECK (amount >= 0),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+-- Create Borrower table
+CREATE TABLE Borrower (
+    cust_name VARCHAR(50),
+    loan_no INT,
+    PRIMARY KEY (cust_name, loan_no),
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+);
+
+-- Insert Data into Branch
+INSERT INTO Branch VALUES
+('Akurdi', 'Pune', 7000000),
+('Nigdi', 'Pune', 8000000),
+('Kothrud', 'Pune', 5000000);
+
+-- Insert Data into Customer
+INSERT INTO Customer VALUES
+('Rahul', 'MG Road', 'Pune'),
+('Aisha', 'FC Road', 'Pune'),
+('Neha', 'Baner Road', 'Pune'),
+('Sunil', 'Tilak Road', 'Mumbai');
+
+-- Insert Data into Account
+INSERT INTO Account VALUES
+(101, 'Akurdi', 10000),
+(102, 'Akurdi', 15000),
+(103, 'Nigdi', 8000),
+(104, 'Nigdi', 14000),
+(105, 'Kothrud', 20000);
+
+-- Insert Data into Depositor
+INSERT INTO Depositor VALUES
+('Rahul', 101),
+('Aisha', 102),
+('Rahul', 103),
+('Neha', 104),
+('Sunil', 105);
+
+-- Insert Data into Loan
+INSERT INTO Loan VALUES
+(201, 'Akurdi', 12000),
+(202, 'Nigdi', 18000),
+(203, 'Kothrud', 15000);
+
+-- Insert Data into Borrower
+INSERT INTO Borrower VALUES
+('Rahul', 201),
+('Aisha', 202),
+('Neha', 203);
+
+
+-- 1. Find the average account balance at each branch
+SELECT branch_name, ROUND(AVG(balance), 2) AS avg_balance
+FROM Account
+GROUP BY branch_name;
+
+-- 2. Find number of depositors at each branch
+SELECT a.branch_name, COUNT(DISTINCT d.cust_name) AS no_of_depositors
+FROM Depositor d
+JOIN Account a ON d.acc_no = a.acc_no
+GROUP BY a.branch_name;
+
+-- 3. Find the branches where average account balance > 12000
+SELECT branch_name
+FROM Account
+GROUP BY branch_name
+HAVING AVG(balance) > 12000;
+
+-- 4. Find number of tuples in customer relation
+SELECT COUNT(*) AS total_customers FROM Customer;
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log
+

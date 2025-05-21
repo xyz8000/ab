@@ -1,0 +1,68 @@
+23  Implement all Aggregation operations and types of indexing with following collection using MongoDB. 
+Employee(emp_id, emp_name,emp_dept,salary)
+
+
+// Step 1: Insert sample data
+db.Employee.insertMany([
+  { emp_id: 101, emp_name: "Amit Sharma", emp_dept: "HR", salary: 40000 },
+  { emp_id: 102, emp_name: "Sneha Patel", emp_dept: "IT", salary: 60000 },
+  { emp_id: 103, emp_name: "Rajesh Kumar", emp_dept: "Finance", salary: 50000 },
+  { emp_id: 104, emp_name: "Priya Singh", emp_dept: "IT", salary: 75000 },
+  { emp_id: 105, emp_name: "Anjali Rao", emp_dept: "HR", salary: 42000 },
+  { emp_id: 106, emp_name: "Manoj Verma", emp_dept: "Finance", salary: 52000 }
+]);
+
+// Step 2: Aggregation Operations
+
+// 1. $match – filter employees from IT department
+db.Employee.aggregate([
+  { $match: { emp_dept: "IT" } }
+]);
+
+// 2. $group – group by department and calculate average salary
+db.Employee.aggregate([
+  { $group: { _id: "$emp_dept", avg_salary: { $avg: "$salary" } } }
+]);
+
+// 3. $sort – sort employees by salary descending
+db.Employee.aggregate([
+  { $sort: { salary: -1 } }
+]);
+
+// 4. $project – include only emp_name and salary
+db.Employee.aggregate([
+  { $project: { emp_name: 1, salary: 1, _id: 0 } }
+]);
+
+// 5. $count – count total number of employees
+db.Employee.aggregate([
+  { $count: "total_employees" }
+]);
+
+// 6. $limit – show only top 3 highest paid employees
+db.Employee.aggregate([
+  { $sort: { salary: -1 } },
+  { $limit: 3 }
+]);
+
+// Step 3: Indexing
+
+// 1. Single Field Index – on emp_id
+db.Employee.createIndex({ emp_id: 1 });
+
+// 2. Compound Index – on emp_dept and salary
+db.Employee.createIndex({ emp_dept: 1, salary: -1 });
+
+// 3. Unique Index – to ensure emp_id is unique
+db.Employee.createIndex({ emp_id: 1 }, { unique: true });
+
+// 4. Text Index – on emp_name for search
+db.Employee.createIndex({ emp_name: "text" });
+
+// Optional: Check all created indexes
+db.Employee.getIndexes();
+
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

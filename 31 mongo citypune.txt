@@ -1,0 +1,115 @@
+// Step 0: Drop the collection to remove duplicates and start fresh
+db.Citydetails.drop();
+
+
+// Step 1: Insert sample data into Citydetails collection
+db.Citydetails.insertMany([
+  {
+    _id: 1,
+    name: "Pune",
+    area: 731,
+    population: {
+      total: 7600000,
+      Adults: 5400000,
+      seniorcitizens: 800000,
+      sexratio: 948
+    },
+    geography: {
+      avgtemp: 24,
+      avgrainfall: 722,
+      longitude: 73.8567,
+      latitude: 18.5204
+    }
+  },
+  {
+    _id: 2,
+    name: "Mumbai",
+    area: 603,
+    population: {
+      total: 12400000,
+      Adults: 9000000,
+      seniorcitizens: 1200000,
+      sexratio: 852
+    },
+    geography: {
+      avgtemp: 27,
+      avgrainfall: 2422,
+      longitude: 72.8777,
+      latitude: 19.0760
+    }
+  },
+  {
+    _id: 3,
+    name: "Nagpur",
+    area: 227,
+    population: {
+      total: 2400000,
+      Adults: 1700000,
+      seniorcitizens: 250000,
+      sexratio: 961
+    },
+    geography: {
+      avgtemp: 26,
+      avgrainfall: 1200,
+      longitude: 79.0882,
+      latitude: 21.1458
+    }
+  },
+  {
+    _id: 4,
+    name: "Delhi",
+    area: 1484,
+    population: {
+      total: 19000000,
+      Adults: 14000000,
+      seniorcitizens: 2200000,
+      sexratio: 850
+    },
+    geography: {
+      avgtemp: 25,
+      avgrainfall: 800,
+      longitude: 77.1025,
+      latitude: 28.7041
+    }
+  }
+]);
+
+
+// Step 2: Query – Find area-wise total population and sort in increasing order
+db.Citydetails.aggregate([
+  {
+    $project: {
+      name: 1,
+      area: 1,
+      total_population: "$population.total"
+    }
+  },
+  {
+    $sort: { area: 1 }
+  }
+]);
+
+
+// Step 3: Query – Retrieve name and area where average rainfall > 60
+db.Citydetails.find(
+  { "geography.avgrainfall": { $gt: 60 } },
+  { _id: 0, name: 1, area: 1 }
+);
+
+
+// Step 4: Create index on city (name) and area, then find max population in Mumbai
+db.Citydetails.createIndex({ name: 1, area: 1 });
+
+// Find max population in Mumbai
+db.Citydetails.find(
+  { name: "Mumbai" },
+  { _id: 0, name: 1, "population.total": 1 }
+).sort({ "population.total": -1 }).limit(1);
+
+
+// Step 5: Create index on name only
+db.Citydetails.createIndex({ name: 1 });
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

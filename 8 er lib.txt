@@ -1,0 +1,102 @@
+8 Draw ER for Library database with atleast 5 entities and convert them into tables.
+Perform DDL on above converted tables.
+1. Create tables with all constraints (Based on ERD cardinalities)
+2. Create views on any two tables using join condition
+3. Create index called Lib_Index1. Entries should be in ascending order by Author name.
+4. Create sequence on Bookid.
+
+Entities: Author, Publisher, Member, Book, Borrow
+Keys:
+Author: AuthorID (PK)
+Publisher: PublisherID (PK)
+Member: MemberID (PK)
+Book: BookID (PK), AuthorID (FK), PublisherID (FK)
+Borrow: BorrowID (PK), BookID (FK), MemberID (FK)
+  Relations:
+Author 1—M Book
+Publisher 1—M Book
+Member 1—M Borrow
+Book 1—M Borrow
+
+
+-- Create tables with constraints
+
+CREATE TABLE Author (
+    AuthorID INT PRIMARY KEY,
+    AuthorName VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Publisher (
+    PublisherID INT PRIMARY KEY,
+    PublisherName VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Member (
+    MemberID INT PRIMARY KEY,
+    MemberName VARCHAR(100) NOT NULL,
+    Address VARCHAR(200)
+);
+
+CREATE TABLE Book (
+    BookID INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(200) NOT NULL,
+    AuthorID INT,
+    PublisherID INT,
+    FOREIGN KEY (AuthorID) REFERENCES Author(AuthorID),
+    FOREIGN KEY (PublisherID) REFERENCES Publisher(PublisherID)
+);
+
+CREATE TABLE Borrow (
+    BorrowID INT AUTO_INCREMENT PRIMARY KEY,
+    BookID INT,
+    MemberID INT,
+    BorrowDate DATE,
+    ReturnDate DATE,
+    FOREIGN KEY (BookID) REFERENCES Book(BookID),
+    FOREIGN KEY (MemberID) REFERENCES Member(MemberID)
+);
+
+-- Insert sample data
+
+INSERT INTO Author (AuthorID, AuthorName) VALUES
+(1, 'Ruskin Bond'),
+(2, 'Amish Tripathi'),
+(3, 'Arundhati Roy');
+
+INSERT INTO Publisher (PublisherID, PublisherName) VALUES
+(1, 'Penguin India'),
+(2, 'HarperCollins');
+
+INSERT INTO Member (MemberID, MemberName, Address) VALUES
+(101, 'Rajesh Kumar', 'Delhi'),
+(102, 'Anita Sharma', 'Mumbai');
+
+INSERT INTO Book (Title, AuthorID, PublisherID) VALUES
+('The Blue Umbrella', 1, 1),
+('The Immortals of Meluha', 2, 2),
+('The God of Small Things', 3, 1);
+
+INSERT INTO Borrow (BookID, MemberID, BorrowDate, ReturnDate) VALUES
+(1, 101, '2025-05-01', '2025-05-10'),
+(3, 102, '2025-05-05', NULL);
+
+-- Create views using JOIN
+
+CREATE VIEW BookAuthors AS
+SELECT B.BookID, B.Title, A.AuthorName
+FROM Book B
+JOIN Author A ON B.AuthorID = A.AuthorID;
+
+CREATE VIEW MemberBorrowedBooks AS
+SELECT M.MemberName, B.Title, BR.BorrowDate, BR.ReturnDate
+FROM Member M
+JOIN Borrow BR ON M.MemberID = BR.MemberID
+JOIN Book B ON BR.BookID = B.BookID;
+
+-- Create index on AuthorName ascending
+
+CREATE INDEX Lib_Index1 ON Author(AuthorName ASC);
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

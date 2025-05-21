@@ -1,0 +1,148 @@
+-- Step 1: Drop existing tables to avoid duplication
+DROP TABLE IF EXISTS Fine;
+DROP TABLE IF EXISTS transaction;
+DROP TABLE IF EXISTS Borrower;
+DROP TABLE IF EXISTS Library;
+
+-- Step 2: Create Borrower table
+CREATE TABLE Borrower (
+    Rollin INT NOT NULL,
+    Name VARCHAR(100),
+    DateofIssue DATE,
+    NameofBook VARCHAR(100),
+    Status CHAR(1),  -- 'I' for Issued, 'R' for Returned
+    PRIMARY KEY (Rollin, NameofBook)
+);
+
+-- Step 3: Create Fine table
+CREATE TABLE Fine (
+    FineID INT AUTO_INCREMENT PRIMARY KEY,
+    Roll_no INT,
+    Date DATE,
+    Amt DECIMAL(10, 2)
+);
+
+-- Step 4: Create Library table
+CREATE TABLE Library (
+    bid INT PRIMARY KEY,
+    bname VARCHAR(100),
+    doi DATE,
+    status CHAR(1),  -- 'A' for Available, 'I' for Issued
+    noc INT  -- Number of copies available
+);
+
+-- Step 5: Create Transaction table
+CREATE TABLE transaction (
+    tid INT AUTO_INCREMENT PRIMARY KEY,
+    bid INT,
+    bname VARCHAR(100),
+    status CHAR(1),  -- 'I' for Issued, 'R' for Returned
+    txn_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Step 6: Insert sample data into Borrower
+INSERT INTO Borrower VALUES
+(101, 'Rahul', '2024-04-01', 'Introduction to SQL', 'I'),
+(102, 'Neha', '2024-03-20', 'Database Management', 'I'),
+(103, 'Amit', '2024-03-10', 'Programming in Java', 'I'),
+(104, 'Priya', '2024-04-05', 'Web Development Essentials', 'I');
+
+-- Step 7: Insert sample data into Library
+INSERT INTO Library VALUES
+(1, 'Introduction to SQL', '2024-04-01', 'I', 5),
+(2, 'Database Management', '2024-03-20', 'I', 3),
+(3, 'Programming in Java', '2024-03-10', 'I', 4),
+(4, 'Web Development Essentials', '2024-04-05', 'I', 2);
+
+-- Step 8: Insert sample data into Transaction
+INSERT INTO transaction (bid, bname, status) VALUES
+(1, 'Introduction to SQL', 'I'),
+(2, 'Database Management', 'I'),
+(3, 'Programming in Java', 'I'),
+(4, 'Web Development Essentials', 'I');
+
+-- Step 9: Create the stored procedure
+DELIMITER $$
+
+CREATE PROCEDURE ProcessBookReturn(
+    IN p_roll_no INT,
+    IN p_book_name VARCHAR(100)
+)
+BEGIN
+    DECLARE v_date_of_issue DATE;
+    DECLARE v_days INT;
+    DECLARE v_fine_amt DECIMAL(10, 2) DEFAULT 0;
+    DECLARE v_status CHAR(1);
+    DECLARE v_bid INT;
+
+    -- Error handling
+    DECLARE EXIT HANDLER FOR SQLEXCEPTION
+    BEGIN
+        ROLLBACK;
+        SELECT 'An error occurred during the transaction.' AS Message;
+    END;
+
+    START TRANSACTION;
+
+    -- Step 1: Fetch book and borrower details
+    SELECT b.DateofIssue, b.Status, l.bid
+    INTO v_date_of_issue, v_status, v_bid
+    FROM Borrower b
+    JOIN Library l ON b.NameofBook = l.bname
+    WHERE b.Rollin = p_roll_no AND b.NameofBook = p_book_name
+    LIMIT 1;
+
+    -- Step 2: Check if the book is issued
+    IF v_status != 'I' THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Book is not issued or already returned.';
+    END IF;
+
+    -- Step 3: Calculate the number of days late
+    SET v_days = DATEDIFF(CURDATE(), v_date_of_issue);
+
+    -- Step 4: Calculate fine amount
+    IF v_days BETWEEN 15 AND 30 THEN
+        SET v_fine_amt = v_days * 5;
+    ELSEIF v_days > 30 THEN
+        SET v_fine_amt = (30 * 5) + ((v_days - 30) * 50);
+    ELSE
+        SET v_fine_amt = 0;
+    END IF;
+
+    -- Step 5: Update borrower status to 'R'
+    UPDATE Borrower
+    SET Status = 'R'
+    WHERE Rollin = p_roll_no AND NameofBook = p_book_name;
+
+    -- Step 6: Increase number of copies in library
+    UPDATE Library
+    SET noc = noc + 1
+    WHERE bid = v_bid;
+
+    -- Step 7: Insert fine if applicable
+    IF v_fine_amt > 0 THEN
+        INSERT INTO Fine (Roll_no, Date, Amt)
+        VALUES (p_roll_no, CURDATE(), v_fine_amt);
+    END IF;
+
+    -- Step 8: Insert return transaction
+    INSERT INTO transaction (bid, bname, status)
+    VALUES (v_bid, p_book_name, 'R');
+
+    COMMIT;
+
+    -- Step 9: Show success message
+    SELECT CONCAT('Book returned successfully. Fine amount: Rs ', v_fine_amt) AS Message;
+END$$
+
+DELIMITER ;
+
+-- Step 10: Example calls to test the procedure
+-- Make sure to call with real books from the Borrower table
+CALL ProcessBookReturn(101, 'Introduction to SQL');
+CALL ProcessBookReturn(102, 'Database Management');
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

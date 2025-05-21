@@ -1,0 +1,72 @@
+16 Implement Map reduce operation with following example using MongoDB
+Students(stud_id, stud_name,stud_addr,stud_marks) 
+
+AND
+Write a PL/SQL code to calculate total and percentage of marks of the students in four subjects.
+
+PART A:
+// Sample data insertion (if needed)
+db.Students.insertMany([
+  { stud_id: 1, stud_name: "Amit Sharma", stud_addr: "Delhi", stud_marks: 320 },
+  { stud_id: 2, stud_name: "Sneha Patel", stud_addr: "Ahmedabad", stud_marks: 350 },
+  { stud_id: 3, stud_name: "Rajesh Kumar", stud_addr: "Delhi", stud_marks: 300 },
+  { stud_id: 4, stud_name: "Priya Singh", stud_addr: "Bangalore", stud_marks: 310 },
+  { stud_id: 5, stud_name: "Anjali Rao", stud_addr: "Ahmedabad", stud_marks: 340 }
+]);
+
+// Map function: emit stud_addr as key and stud_marks as value
+var mapFunction = function() {
+  emit(this.stud_addr, this.stud_marks);
+};
+
+// Reduce function: sum all marks for each stud_addr
+var reduceFunction = function(key, values) {
+  return Array.sum(values);
+};
+
+// Run MapReduce
+db.Students.mapReduce(
+  mapFunction,
+  reduceFunction,
+  { out: "total_marks_by_city" }
+);
+
+// View results
+db.total_marks_by_city.find();
+
+
+
+PART B:
+
+-- Step 1: Create the students table
+CREATE TABLE students (
+  stud_id INT PRIMARY KEY,
+  stud_name VARCHAR(50),
+  marks_sub1 INT,
+  marks_sub2 INT,
+  marks_sub3 INT,
+  marks_sub4 INT
+);
+
+-- Step 2: Insert sample student data
+INSERT INTO students VALUES (1, 'Amit Sharma', 85, 78, 92, 88);
+INSERT INTO students VALUES (2, 'Sneha Patel', 90, 85, 88, 91);
+INSERT INTO students VALUES (3, 'Rajesh Kumar', 75, 80, 70, 68);
+INSERT INTO students VALUES (4, 'Priya Singh', 88, 92, 95, 90);
+INSERT INTO students VALUES (5, 'Anjali Rao', 80, 82, 79, 85);
+
+SELECT 
+  stud_id,
+  stud_name,
+  marks_sub1,
+  marks_sub2,
+  marks_sub3,
+  marks_sub4,
+  (marks_sub1 + marks_sub2 + marks_sub3 + marks_sub4) AS total_marks,
+  ROUND(((marks_sub1 + marks_sub2 + marks_sub3 + marks_sub4) / 400) * 100, 2) AS percentage
+FROM 
+  students;
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

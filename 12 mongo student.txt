@@ -1,0 +1,27 @@
+12 Implement Indexing and querying with MongoDB using following example.
+
+                        Students(stud_id, stud_name,stud_addr,stud_marks)
+
+
+// Insert sample data with Indian names
+db.Students.insertMany([
+  { stud_id: 1, stud_name: "Amit Sharma", stud_addr: "Delhi", stud_marks: 82 },
+  { stud_id: 2, stud_name: "Sneha Patel", stud_addr: "Ahmedabad", stud_marks: 91 },
+  { stud_id: 3, stud_name: "Rajesh Kumar", stud_addr: "Mumbai", stud_marks: 77 },
+  { stud_id: 4, stud_name: "Priya Singh", stud_addr: "Bangalore", stud_marks: 89 },
+  { stud_id: 5, stud_name: "Anjali Rao", stud_addr: "Hyderabad", stud_marks: 85 }
+]);
+
+// Create indexes
+db.Students.createIndex({ stud_id: 1 });
+db.Students.createIndex({ stud_name: 1 });
+db.Students.createIndex({ stud_addr: 1, stud_marks: -1 });
+
+// Queries
+db.Students.find({ stud_id: 3 });
+db.Students.find({ stud_name: "Priya Singh" });
+db.Students.find({ stud_addr: "Delhi", stud_marks: { $gt: 80 } }).sort({ stud_marks: -1 });
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

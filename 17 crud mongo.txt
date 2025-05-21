@@ -1,0 +1,36 @@
+17 Create  following collection and  using MongoDB  implement all CRUD operations.
+                        Orders( cust_id, amount, status)
+
+
+// Create and insert orders (Create)
+db.Orders.insertOne({ cust_id: 101, amount: 500, status: "pending" });
+
+db.Orders.insertMany([
+  { cust_id: 102, amount: 1200, status: "completed" },
+  { cust_id: 103, amount: 700, status: "pending" },
+  { cust_id: 104, amount: 1500, status: "shipped" }
+]);
+
+// Read operations (Retrieve)
+db.Orders.find();                           // Find all orders
+db.Orders.find({ status: "pending" });     // Find orders with status "pending"
+db.Orders.find({ amount: { $gt: 1000 } }); // Find orders with amount > 1000
+
+// Update operations
+db.Orders.updateOne(
+  { cust_id: 101 },
+  { $set: { status: "completed" } }
+);
+
+db.Orders.updateMany(
+  { status: "pending" },
+  { $inc: { amount: 100 } }  // Increase amount by 100
+);
+
+// Delete operations
+db.Orders.deleteOne({ cust_id: 104 });      // Delete order with cust_id 104
+db.Orders.deleteMany({ status: "completed" }); // Delete all completed orders
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

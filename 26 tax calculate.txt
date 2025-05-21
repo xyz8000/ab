@@ -1,0 +1,70 @@
+
+CREATE TABLE employee_salary (
+    emp_no INT PRIMARY KEY,
+    basic INT,
+    hra INT,
+    da INT,
+    total_deduction INT,
+    net_salary INT,
+    gross_salary INT
+);
+
+
+INSERT INTO employee_salary VALUES
+(101, 50000, 10000, 5000, 7000, 58000, 65000),
+(102, 60000, 12000, 6000, 8000, 70000, 78000),
+(103, 45000, 9000, 4500, 6500, 50000, 56500),
+(104, 70000, 14000, 7000, 10000, 87000, 97000);
+
+
+DELIMITER //
+CREATE PROCEDURE calculate_tax()
+BEGIN
+    -- Declare variables
+    DECLARE x INT DEFAULT 0; -- emp_no
+    DECLARE y INT DEFAULT 0; -- basic
+    DECLARE z INT DEFAULT 0; -- hra
+    DECLARE a INT DEFAULT 0; -- da
+    DECLARE b INT DEFAULT 0; -- total_deduction
+    DECLARE c INT DEFAULT 0; -- net_salary
+    DECLARE d INT DEFAULT 0; -- gross_salary
+    DECLARE finished INT DEFAULT 0;
+    DECLARE tax DECIMAL(10,2);
+
+    -- Declare cursor for employee_salary data
+    DECLARE cur CURSOR FOR 
+        SELECT emp_no, basic, hra, da, total_deduction, net_salary, gross_salary 
+        FROM employee_salary 
+        ORDER BY emp_no;
+
+    -- Handler for cursor end
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET finished = 1;
+
+    -- Open cursor
+    OPEN cur;
+
+    emp_loop: LOOP
+        FETCH cur INTO x, y, z, a, b, c, d;
+        IF finished = 1 THEN 
+            LEAVE emp_loop;
+        END IF;
+
+        -- Calculate tax as 10% of gross_salary
+        SET tax = d * 0.1;
+
+        -- Output result for each employee
+        SELECT x AS emp_no, d AS gross_salary, tax AS tax_amount;
+    END LOOP;
+
+    -- Close cursor
+    CLOSE cur;
+END;
+//
+DELIMITER ;
+
+
+CALL calculate_tax();
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

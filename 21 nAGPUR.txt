@@ -1,0 +1,99 @@
+-- Use or create the database (optional)
+CREATE DATABASE IF NOT EXISTS banking;
+USE banking;
+
+
+-- Create tables with primary keys and foreign keys
+
+CREATE TABLE Branch (
+    bname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    cname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(12,2),
+    adate DATE,
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(12,2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+-- Insert sample data
+
+INSERT INTO Branch VALUES
+('SBI', 'Mumbai'),
+('OBC', 'Nagpur'),
+('HDFC', 'Delhi');
+
+INSERT INTO Customers VALUES
+('Rahul', 'Mumbai'),
+('Aisha', 'Nagpur'),
+('ABC', 'Bombay'),
+('Suresh', 'Nagpur');
+
+INSERT INTO Deposit VALUES
+(101, 'Rahul', 'SBI', 5000, '2025-04-15'),
+(102, 'Aisha', 'OBC', 7000, '2025-03-20'),
+(103, 'ABC', 'HDFC', 8000, '2025-05-10');
+
+INSERT INTO Borrow VALUES
+(201, 'Rahul', 'SBI', 10000),
+(202, 'Aisha', 'OBC', 15000),
+(203, 'Suresh', 'OBC', 20000);
+
+-- Query 1: Display customer name having living city 'Bombay' and branch city 'Nagpur'
+SELECT cname
+FROM Customers
+WHERE city = 'Bombay'
+  AND cname IN (
+    SELECT cname
+    FROM Deposit
+    WHERE bname IN (
+      SELECT bname
+      FROM Branch
+      WHERE city = 'Nagpur'
+    )
+);
+
+-- Query 2: Display customer name having same living city as their branch city
+SELECT cname
+FROM Customers
+WHERE city IN (
+  SELECT city
+  FROM Branch
+  WHERE bname IN (
+    SELECT bname
+    FROM Deposit
+    WHERE Deposit.cname = Customers.cname
+  )
+);
+
+-- Query 3: Display customer name who are borrowers as well as depositors and having living city 'Nagpur'
+SELECT DISTINCT d.cname
+FROM Deposit d
+JOIN Borrow b ON d.cname = b.cname
+WHERE d.cname IN (
+  SELECT cname
+  FROM Customers
+  WHERE city = 'Nagpur'
+);
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

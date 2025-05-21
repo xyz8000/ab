@@ -1,0 +1,51 @@
+
+5 Create a collection sites(url,dateofaccess). Write a MapReduce function to find the no. of times a site was accessed in a month.
+
+db.sites.insertMany([
+  { url: "example.com", dateofaccess: new Date("2025-05-10") },
+  { url: "example.com", dateofaccess: new Date("2025-05-15") },
+  { url: "example.com", dateofaccess: new Date("2025-06-01") },
+  { url: "google.com", dateofaccess: new Date("2025-05-20") },
+  { url: "google.com", dateofaccess: new Date("2025-05-22") }
+]);
+
+
+// Step 2: Define the Map function
+// This function emits a key for each site and month-year, with a count of 1
+var mapFunction = function() {
+  var date = new Date(this.dateofaccess);
+  var month = date.getMonth() + 1;  // getMonth() returns 0-11, so add 1
+  var year = date.getFullYear();
+
+
+  // Format key as "url_yyyy-mm", with leading zero for month if needed
+  var key = this.url + "_" + year + "-" + (month < 10 ? "0" + month : month);
+
+
+  emit(key, 1);  // Emit key with value 1 for each access
+};
+
+
+// Step 3: Define the Reduce function
+// This function sums all the counts for the same key
+var reduceFunction = function(key, values) {
+  return Array.sum(values);
+};
+
+
+// Step 4: Run the MapReduce operation
+db.sites.mapReduce(
+  mapFunction,
+  reduceFunction,
+  {
+    out: "site_access_per_month"  // Output collection name
+  }
+);
+
+
+// Step 5: View the results
+db.site_access_per_month.find().forEach(printjson);
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

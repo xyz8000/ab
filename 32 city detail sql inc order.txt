@@ -1,0 +1,49 @@
+-- Create the table with new name: CityInfo
+CREATE TABLE CityInfo (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    area FLOAT,
+    total_population INT,
+    adults INT,
+    senior_citizens INT,
+    sex_ratio FLOAT,
+    avg_temp FLOAT,
+    avg_rainfall FLOAT,
+    longitude FLOAT,
+    latitude FLOAT
+);
+
+-- Insert 5 sample values
+INSERT INTO CityInfo 
+(name, area, total_population, adults, senior_citizens, sex_ratio, avg_temp, avg_rainfall, longitude, latitude)
+VALUES
+('Mumbai', 603.4, 20411000, 15000000, 3000000, 948.0, 27.2, 242.2, 72.8777, 19.0760),
+('Delhi', 1484.0, 31181376, 22000000, 5000000, 911.0, 25.0, 800.0, 77.1025, 28.7041),
+('Chennai', 426.0, 11000000, 8000000, 1000000, 986.0, 29.0, 1400.0, 80.2707, 13.0827),
+('Jaipur', 484.6, 4300000, 3000000, 600000, 888.0, 25.3, 650.0, 75.7873, 26.9124),
+('Pune', 331.3, 7800000, 6000000, 800000, 915.0, 24.5, 722.0, 73.8567, 18.5204);
+
+-- Query 1: Find area-wise total population and sort in increasing order
+SELECT area, total_population
+FROM CityInfo
+ORDER BY total_population ASC;
+
+-- Query 2: Retrieve name and area where average rainfall is greater than 60
+SELECT name, area
+FROM CityInfo
+WHERE avg_rainfall > 60;
+
+-- Query 3: Create index on city (name) and area, then find max population in Mumbai
+CREATE INDEX idx_city_area ON CityInfo(name, area);
+
+SELECT MAX(total_population) AS max_population
+FROM CityInfo
+WHERE name = 'Mumbai';
+
+-- Query 4: Create index on name
+CREATE INDEX idx_name ON CityInfo(name);
+
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

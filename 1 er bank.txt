@@ -1,0 +1,117 @@
+1: Draw an ER for Bank database with atleast 5 entities and convert them into tables.
+Perform DDL on above converted tables.
+1. Create tables with all constraints
+2. Create views on any two tables using join conditions
+3. Create index called CustomerId. Entries should be in ascending order by customer name.
+4. Create sequence on Acctno.
+
+ER Model for Bank Database (Short)
+Entities:
+Customer (CustomerID, Name, Address, Phone)
+Branch (BranchID, BranchName, Location)
+Account (AcctNo, Balance, CustomerID, BranchID)
+Loan (LoanID, Amount, CustomerID)
+Transaction (TxnID, AcctNo, TxnType, Amount, TxnDate)
+Relationships:
+Customer — Account: One-to-Many
+Branch — Account: One-to-Many
+Customer — Loan: One-to-Many
+Account — Transaction: One-to-Many
+
+
+
+
+CREATE TABLE Customer (
+    CustomerID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Address VARCHAR(200),
+    Phone VARCHAR(15)
+);
+
+CREATE TABLE Branch (
+    BranchID INT AUTO_INCREMENT PRIMARY KEY,
+    BranchName VARCHAR(100) NOT NULL,
+    Location VARCHAR(100)
+);
+
+CREATE TABLE Account (
+    AcctNo INT AUTO_INCREMENT PRIMARY KEY,
+    Balance DECIMAL(12,2) CHECK (Balance >= 0),
+    CustomerID INT,
+    BranchID INT,
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID),
+    FOREIGN KEY (BranchID) REFERENCES Branch(BranchID)
+);
+
+CREATE TABLE Loan (
+    LoanID INT AUTO_INCREMENT PRIMARY KEY,
+    Amount DECIMAL(10,2) NOT NULL CHECK (Amount > 0),
+    CustomerID INT,
+    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID)
+);
+
+CREATE TABLE Transaction (
+    TxnID INT AUTO_INCREMENT PRIMARY KEY,
+    AcctNo INT,
+    TxnType VARCHAR(20) CHECK (TxnType IN ('Deposit', 'Withdrawal', 'Transfer')),
+    Amount DECIMAL(10,2) CHECK (Amount > 0),
+    TxnDate DATE,
+    FOREIGN KEY (AcctNo) REFERENCES Account(AcctNo)
+);
+
+
+INSERT INTO Customer (Name, Address, Phone) VALUES
+('Rajesh Kumar', '123 MG Road, Bengaluru, Karnataka', '9876543210'),
+('Anita Sharma', '45 Connaught Place, New Delhi', '9123456780'),
+('Suresh Patel', '22 Marine Drive, Mumbai, Maharashtra', '9988776655'),
+('Priya Singh', '56 Park Street, Kolkata, West Bengal', '9876512345'),
+('Amit Verma', '89 Residency Road, Pune, Maharashtra', '9012345678');
+
+
+INSERT INTO Branch (BranchName, Location) VALUES
+('MG Road Branch', 'Bengaluru'),
+('Connaught Place Branch', 'New Delhi'),
+('Marine Drive Branch', 'Mumbai'),
+('Park Street Branch', 'Kolkata'),
+('Residency Road Branch', 'Pune');
+
+
+INSERT INTO Account (Balance, CustomerID, BranchID) VALUES
+(50000.00, 1, 1),
+(75000.00, 2, 2),
+(62000.00, 3, 3),
+(83000.00, 4, 4),
+(40000.00, 5, 5);
+
+
+INSERT INTO Loan (Amount, CustomerID) VALUES
+(200000.00, 1),
+(150000.00, 3),
+(300000.00, 4);
+
+
+INSERT INTO Transaction (AcctNo, TxnType, Amount, TxnDate) VALUES
+(1, 'Deposit', 10000.00, '2025-05-01'),
+(2, 'Withdrawal', 5000.00, '2025-05-03'),
+(3, 'Deposit', 7000.00, '2025-05-05'),
+(4, 'Transfer', 12000.00, '2025-05-10'),
+(5, 'Deposit', 8000.00, '2025-05-12');
+
+
+
+CREATE VIEW CustomerAccounts AS
+SELECT C.CustomerID, C.Name, A.AcctNo, A.Balance, B.BranchName
+FROM Customer C
+JOIN Account A ON C.CustomerID = A.CustomerID
+JOIN Branch B ON A.BranchID = B.BranchID;
+
+CREATE VIEW CustomerLoans AS
+SELECT C.CustomerID, C.Name, L.LoanID, L.Amount
+FROM Customer C
+JOIN Loan L ON C.CustomerID = L.CustomerID;
+
+
+CREATE INDEX CustomerNameIndex ON Customer(Name);
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

@@ -1,0 +1,140 @@
+
+CREATE TABLE EMPLOYEE (
+    Fname VARCHAR(50) NOT NULL,
+    Minit CHAR(1),
+    Lname VARCHAR(50) NOT NULL,
+    Ssn CHAR(9) PRIMARY KEY,
+    Bdate DATE,
+    Address VARCHAR(100),
+    Sex CHAR(1),
+    Salary DECIMAL(10,2),
+    Dno INT
+);
+
+CREATE TABLE DEPARTMENT (
+    Dname VARCHAR(50),
+    Dno INT PRIMARY KEY,
+    Mgr_ssn CHAR(9),
+    Mgr_start_date DATE,
+    FOREIGN KEY (Mgr_ssn) REFERENCES EMPLOYEE(Ssn)
+);
+
+CREATE TABLE DEPT_LOCATIONS (
+    Dnumber INT,
+    Dlocation VARCHAR(50),
+    FOREIGN KEY (Dnumber) REFERENCES DEPARTMENT(Dno)
+);
+
+CREATE TABLE PROJECT (
+    Pname VARCHAR(50),
+    Pnumber INT PRIMARY KEY,
+    Plocation VARCHAR(50),
+    Dno INT,
+    FOREIGN KEY (Dno) REFERENCES DEPARTMENT(Dno)
+);
+
+CREATE TABLE WORKS_ON (
+    Essn CHAR(9),
+    Pno INT,
+    Hours DECIMAL(4,1),
+    PRIMARY KEY (Essn, Pno),
+    FOREIGN KEY (Essn) REFERENCES EMPLOYEE(Ssn),
+    FOREIGN KEY (Pno) REFERENCES PROJECT(Pnumber)
+);
+
+CREATE TABLE DEPENDENT (
+    Essn CHAR(9),
+    Dependent_name VARCHAR(50),
+    Sex CHAR(1),
+    Bdate DATE,
+    Relationship VARCHAR(25),
+    FOREIGN KEY (Essn) REFERENCES EMPLOYEE(Ssn)
+);
+
+-- ========================
+-- 3. Insert Sample Data
+-- ========================
+
+-- EMPLOYEE
+INSERT INTO EMPLOYEE VALUES
+('John', 'B', 'Smith', '123456789', '1980-01-09', 'Houston, Texas', 'M', 40000, 1),
+('Anna', 'M', 'Brown', '987654321', '1985-03-12', 'Dallas, Texas', 'F', 50000, 2),
+('James', 'T', 'White', '456123789', '1990-07-23', 'Austin, Texas', 'M', 60000, 1);
+
+-- DEPARTMENT
+INSERT INTO DEPARTMENT VALUES
+('Research', 1, '123456789', '2010-01-01'),
+('Administration', 2, '987654321', '2012-05-15');
+
+-- DEPT_LOCATIONS
+INSERT INTO DEPT_LOCATIONS VALUES
+(1, 'Stafford'),
+(2, 'Dallas');
+
+-- PROJECT
+INSERT INTO PROJECT VALUES
+('ProductX', 101, 'Stafford', 1),
+('ProductY', 102, 'Dallas', 2),
+('ProductZ', 103, 'Stafford', 1);
+
+-- WORKS_ON
+INSERT INTO WORKS_ON VALUES
+('123456789', 101, 32.5),
+('987654321', 102, 20.0),
+('456123789', 101, 15.0);
+
+-- DEPENDENT
+INSERT INTO DEPENDENT VALUES
+('123456789', 'Alice', 'F', '2005-04-23', 'Daughter'),
+('987654321', 'Tom', 'M', '2010-08-15', 'Son');
+
+-- ========================
+-- 4. Queries
+-- ========================
+
+-- Q1: Projects in 'Stafford' with department number and manager details
+SELECT 
+    P.Pnumber, 
+    P.Dno, 
+    E.Lname AS Manager_Lname,
+    E.Address AS Manager_Address,
+    E.Bdate AS Manager_Birthdate
+FROM PROJECT P
+JOIN DEPARTMENT D ON P.Dno = D.Dno
+JOIN EMPLOYEE E ON D.Mgr_ssn = E.Ssn
+WHERE P.Plocation = 'Stafford';
+
+-- Q2: Project numbers involving employees named 'Smith' as worker or manager
+SELECT DISTINCT P.Pnumber
+FROM PROJECT P
+JOIN WORKS_ON W ON P.Pnumber = W.Pno
+JOIN EMPLOYEE E ON W.Essn = E.Ssn
+WHERE E.Lname = 'Smith'
+
+UNION
+
+SELECT DISTINCT P.Pnumber
+FROM PROJECT P
+JOIN DEPARTMENT D ON P.Dno = D.Dno
+JOIN EMPLOYEE E ON D.Mgr_ssn = E.Ssn
+WHERE E.Lname = 'Smith';
+
+-- Q3: Employees whose address is in 'Houston, Texas'
+SELECT * FROM EMPLOYEE
+WHERE Address LIKE '%Houston, Texas%';
+
+-- Q4: Salaries after 10% raise for employees working on 'ProductX'
+SELECT 
+    E.Fname, 
+    E.Lname,
+    E.Salary AS Old_Salary,
+    ROUND(E.Salary * 1.10, 2) AS New_Salary
+FROM EMPLOYEE E
+JOIN WORKS_ON W ON E.Ssn = W.Essn
+JOIN PROJECT P ON W.Pno = P.Pnumber
+WHERE P.Pname = 'ProductX';
+
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

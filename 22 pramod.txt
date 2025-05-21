@@ -1,0 +1,106 @@
+-- 1. Create tables
+
+CREATE TABLE Branch (
+    bname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Customers (
+    cname VARCHAR(50) PRIMARY KEY,
+    city VARCHAR(50)
+);
+
+CREATE TABLE Deposit (
+    actno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10,2),
+    adate DATE,
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+CREATE TABLE Borrow (
+    loanno INT PRIMARY KEY,
+    cname VARCHAR(50),
+    bname VARCHAR(50),
+    amount DECIMAL(10,2),
+    FOREIGN KEY (cname) REFERENCES Customers(cname),
+    FOREIGN KEY (bname) REFERENCES Branch(bname)
+);
+
+-- 2. Insert sample data
+
+-- Branches
+INSERT INTO Branch VALUES 
+('KAROLBAGH', 'DELHI'),
+('MGROAD', 'PUNE'),
+('CAMPUS', 'CHENNAI');
+
+-- Customers
+INSERT INTO Customers VALUES 
+('Sunil', 'PUNE'),
+('Pramod', 'CHENNAI'),
+('ABC', 'DELHI'),
+('Ravi', 'PUNE'),
+('Meena', 'CHENNAI');
+
+-- Deposits
+INSERT INTO Deposit VALUES 
+(101, 'Sunil', 'MGROAD', 2000, '2020-01-01'),
+(102, 'Pramod', 'CAMPUS', 3000, '2021-02-01'),
+(103, 'ABC', 'KAROLBAGH', 1500, '2020-12-12'),
+(104, 'Ravi', 'MGROAD', 900, '2021-06-10');
+
+-- Loans
+INSERT INTO Borrow VALUES 
+(201, 'Sunil', 'MGROAD', 5000),
+(202, 'Pramod', 'CAMPUS', 7000),
+(203, 'ABC', 'KAROLBAGH', 6000),
+(204, 'Meena', 'CAMPUS', 2500);
+
+-- 3. Queries
+
+-- Q1: Display loan no and loan amount of borrowers having the same branch as that of Sunil
+SELECT loanno, amount
+FROM Borrow
+WHERE bname = (
+    SELECT bname FROM Deposit WHERE cname = 'Sunil'
+);
+
+-- Q2: Display deposit and loan details of customers in the city where Pramod is living
+SELECT 'Deposit' AS type, d.cname, d.bname, d.amount, d.adate
+FROM Deposit d
+JOIN Customers c ON d.cname = c.cname
+WHERE c.city = (
+    SELECT city FROM Customers WHERE cname = 'Pramod'
+)
+UNION
+SELECT 'Loan' AS type, b.cname, b.bname, b.amount, NULL
+FROM Borrow b
+JOIN Customers c ON b.cname = c.cname
+WHERE c.city = (
+    SELECT city FROM Customers WHERE cname = 'Pramod'
+);
+
+-- Q3: Display borrower names having deposit amount greater than 1000 and same city as Pramod
+SELECT DISTINCT b.cname
+FROM Borrow b
+JOIN Customers cb ON b.cname = cb.cname
+JOIN Deposit d ON b.cname = d.cname
+JOIN Customers cd ON d.cname = cd.cname
+WHERE d.amount > 1000
+  AND cb.city = (
+      SELECT city FROM Customers WHERE cname = 'Pramod'
+  );
+
+-- Q4: Display branch and living city of ‘ABC’
+SELECT d.bname AS branch, c.city AS living_city
+FROM Deposit d
+JOIN Customers c ON d.cname = c.cname
+WHERE d.cname = 'ABC';
+
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

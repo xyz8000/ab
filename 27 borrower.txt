@@ -1,0 +1,125 @@
+
+
+CREATE TABLE borrower (
+    rollin INT PRIMARY KEY,
+    name VARCHAR(50),
+    dateofissue DATE,
+    nameofbook VARCHAR(100),
+    status CHAR(1)
+);
+
+CREATE TABLE fine (
+    roll_no INT,
+    date DATE,
+    amt INT,
+    FOREIGN KEY (roll_no) REFERENCES borrower(rollin)
+);
+
+-- Insert sample data into borrower table
+INSERT INTO borrower VALUES
+(101, 'rahul', '2024-04-01', 'introduction to sql', 'I'),
+(102, 'neha', '2024-03-20', 'database management', 'I'),
+(103, 'amit', '2024-03-10', 'programming in java', 'I'),
+(104, 'priya', '2024-04-05', 'web development essentials', 'I');
+
+
+DELIMITER //
+CREATE PROCEDURE process_fine(
+    IN user_roll INT,
+    IN user_book VARCHAR(100)
+)
+BEGIN
+    DECLARE issue_date DATE;
+    DECLARE days_late INT;
+    DECLARE fine_amount INT DEFAULT 0;
+    DECLARE book_status CHAR(1);
+
+    -- Check if such a record exists first
+    IF (SELECT COUNT(*) 
+        FROM borrower 
+        WHERE rollin = user_roll AND nameofbook = user_book) = 0 THEN
+        SIGNAL SQLSTATE '45000' 
+        SET MESSAGE_TEXT = 'No record found for the given roll number and book name';
+    END IF;
+
+    -- Fetch the issue date and status
+    SELECT dateofissue, status INTO issue_date, book_status
+    FROM borrower 
+    WHERE rollin = user_roll AND nameofbook = user_book;
+
+    -- Calculate days late
+    SET days_late = DATEDIFF(CURDATE(), issue_date);
+
+    -- Fine calculation
+    IF days_late >= 15 AND days_late <= 30 THEN
+        SET fine_amount = days_late * 5;
+    ELSEIF days_late > 30 THEN
+        SET fine_amount = days_late * 50;
+    END IF;
+
+    -- Insert fine if applicable
+    IF fine_amount > 0 THEN
+        INSERT INTO fine (roll_no, date, amt)
+        VALUES (user_roll, CURDATE(), fine_amount);
+    END IF;
+
+    -- Update status to 'R' for returned
+    UPDATE borrower 
+    SET status = 'R'
+    WHERE rollin = user_roll AND nameofbook = user_book;
+
+    -- Return result
+    SELECT user_roll AS roll_no, user_book AS book, fine_amount AS fine;
+END;
+//
+DELIMITER ;
+
+-- Example call for fine processing
+-- CALL process_fine(101, 'introduction to sql');
+
+
+
+
+DROP TABLE IF EXISTS employee_salary;
+
+CREATE TABLE employee_salary (
+    emp_no INT PRIMARY KEY,
+    basic INT,
+    hra INT,
+    da INT,
+    total_deduction INT,
+    net_salary INT,
+    gross_salary INT
+);
+
+-- Insert sample data into employee_salary
+INSERT INTO employee_salary VALUES
+(101, 50000, 10000, 5000, 7000, 58000, 65000),
+(102, 60000, 12000, 6000, 8000, 70000, 78000),
+(103, 45000, 9000, 4500, 6500, 50000, 56500),
+(104, 70000, 14000, 7000, 10000, 87000, 97000);
+
+
+
+DELIMITER //
+CREATE PROCEDURE calculate_tax_simple()
+BEGIN
+    SELECT 
+        emp_no, 
+        gross_salary, 
+        gross_salary * 0.1 AS tax
+    FROM employee_salary;
+END;
+//
+DELIMITER ;
+
+-- Example call for tax calculation
+-- CALL calculate_tax_simple();
+
+CALL process_fine(101, 'introduction to sql');
+CALL calculate_tax_simple();
+
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

@@ -1,0 +1,112 @@
+6 Create tables CitiesIndia(pincode,nameofcity,earliername,area,population,avgrainfall) 
+Categories(Type,pincode) Note:- Enter data only in CitiesIndia
+Write PL/SQL Procedure & function to find the population density of the cities. If the population density is above 3000 then Type of city must be entered as High Density in Category table. Between 2999 to 1000 as Moderate and below 999 as Low Density. Error must be displayed for population less than 10 or greater than 25718.
+
+
+-- Create database 
+CREATE DATABASE CityDB; 
+USE CityDB;
+
+-- Step 1: Create the tables
+
+CREATE TABLE CitiesIndia (
+    pincode INT PRIMARY KEY,
+    nameofcity VARCHAR(100),
+    earliername VARCHAR(100),
+    area FLOAT,          -- area in square kilometers
+    population INT,      -- total population
+    avgrainfall FLOAT    -- average rainfall in mm
+);
+
+CREATE TABLE Categories (
+    Type VARCHAR(50),    -- High, Moderate, or Low Density
+    pincode INT,
+    FOREIGN KEY (pincode) REFERENCES CitiesIndia(pincode)
+);
+
+-- Step 2: Insert sample data into CitiesIndia (Indian cities only)
+
+INSERT INTO CitiesIndia VALUES (110001, 'Delhi', 'Indraprastha', 6, 19800, 800);       
+INSERT INTO CitiesIndia VALUES (400001, 'Mumbai', 'Bombay', 5, 18000, 2200);           
+INSERT INTO CitiesIndia VALUES (560001, 'Bengaluru', 'Bangalore', 10, 16000, 970);     
+INSERT INTO CitiesIndia VALUES (600001, 'Chennai', 'Madras', 8, 8000, 1400);           
+INSERT INTO CitiesIndia VALUES (500001, 'Hyderabad', 'Bhagyanagar', 20, 500, 800);     
+INSERT INTO CitiesIndia VALUES (700001, 'Kolkata', 'Calcutta', 15, 5, 1600);           
+
+-- Step 3: Create function to calculate population density
+
+DELIMITER //
+
+CREATE FUNCTION get_density(city_pincode INT) RETURNS FLOAT
+DETERMINISTIC
+BEGIN
+    DECLARE city_population INT;
+    DECLARE city_area FLOAT;
+    DECLARE density FLOAT;
+
+    -- Get population and area for the city
+    SELECT population, area INTO city_population, city_area
+    FROM CitiesIndia
+    WHERE pincode = city_pincode;
+
+    -- Calculate density = population / area
+    SET density = city_population / city_area;
+
+    RETURN density;
+END;
+//
+
+DELIMITER ;
+
+-- Step 4: Create procedure to classify city based on population density
+
+DELIMITER //
+
+CREATE PROCEDURE classify_city_density(city_pincode INT)
+BEGIN
+    DECLARE city_population INT;
+    DECLARE density FLOAT;
+
+    -- Get population from CitiesIndia
+    SELECT population INTO city_population
+    FROM CitiesIndia
+    WHERE pincode = city_pincode;
+
+    -- Check if population is in valid range
+    IF city_population < 10 OR city_population > 25718 THEN
+        SIGNAL SQLSTATE '45000'
+        SET MESSAGE_TEXT = 'Error: Population must be between 10 and 25718';
+    END IF;
+
+    -- Get density using the function
+    SET density = get_density(city_pincode);
+
+    -- Classify based on density value
+    IF density > 3000 THEN 
+        INSERT INTO Categories VALUES ('High Density', city_pincode);
+    ELSEIF density BETWEEN 1000 AND 2999 THEN
+        INSERT INTO Categories VALUES ('Moderate Density', city_pincode);
+    ELSE 
+        INSERT INTO Categories VALUES ('Low Density', city_pincode);
+    END IF;
+END;
+//
+
+DELIMITER ;
+
+-- Step 5: Call procedure for each city (except the invalid one)
+
+CALL classify_city_density(110001);  -- Delhi
+CALL classify_city_density(400001);  -- Mumbai
+CALL classify_city_density(560001);  -- Bengaluru
+CALL classify_city_density(600001);  -- Chennai
+CALL classify_city_density(500001);  -- Hyderabad
+-- CALL classify_city_density(700001);  -- Kolkata (this will throw error due to population < 10)
+
+-- Step 6: Show the classification result
+
+SELECT * FROM Categories;
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log

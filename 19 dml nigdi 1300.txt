@@ -1,0 +1,125 @@
+-- 1. Create and use database (optional)
+CREATE DATABASE IF NOT EXISTS bankdb;
+USE bankdb;
+
+
+-- 3. Create tables
+
+CREATE TABLE Branch (
+    branch_name VARCHAR(50) PRIMARY KEY,
+    branch_city VARCHAR(50),
+    assets DECIMAL(15,2)
+);
+
+CREATE TABLE Customer (
+    cust_name VARCHAR(50) PRIMARY KEY,
+    cust_street VARCHAR(100),
+    cust_city VARCHAR(50)
+);
+
+CREATE TABLE Account (
+    acc_no INT PRIMARY KEY,
+    branch_name VARCHAR(50),
+    balance DECIMAL(15,2),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+CREATE TABLE Depositor (
+    cust_name VARCHAR(50),
+    acc_no INT,
+    PRIMARY KEY (cust_name, acc_no),
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (acc_no) REFERENCES Account(acc_no)
+);
+
+CREATE TABLE Loan (
+    loan_no INT PRIMARY KEY,
+    branch_name VARCHAR(50),
+    amount DECIMAL(15,2),
+    FOREIGN KEY (branch_name) REFERENCES Branch(branch_name)
+);
+
+CREATE TABLE Borrower (
+    cust_name VARCHAR(50),
+    loan_no INT,
+    PRIMARY KEY (cust_name, loan_no),
+    FOREIGN KEY (cust_name) REFERENCES Customer(cust_name),
+    FOREIGN KEY (loan_no) REFERENCES Loan(loan_no)
+);
+
+-- 4. Insert sample data
+
+INSERT INTO Branch VALUES
+('SBI', 'Nigdi', 5000000),
+('OBC', 'Pune', 3000000),
+('HDFC', 'Nigdi', 4000000);
+
+INSERT INTO Customer VALUES
+('Rahul', 'MG Road', 'Pune'),
+('Aisha', 'FC Road', 'Pune'),
+('Sunil', 'Nigdi', 'Pune');
+
+INSERT INTO Account VALUES
+(101, 'SBI', 25000),
+(102, 'OBC', 15000),
+(103, 'HDFC', 30000);
+
+INSERT INTO Depositor VALUES
+('Rahul', 101),
+('Aisha', 102),
+('Sunil', 103);
+
+INSERT INTO Loan VALUES
+(201, 'SBI', 1200),
+(202, 'OBC', 1400),
+(203, 'HDFC', 1600);
+
+INSERT INTO Borrower VALUES
+('Rahul', 201),
+('Aisha', 202),
+('Sunil', 203);
+
+-- 5. Queries
+
+-- Query 1: Calculate total loan amount given by bank
+SELECT SUM(amount) AS total_loan_amount FROM Loan;
+
+-- Query 2: Delete all loans with loan amount between 1300 and 1500
+DELETE FROM Loan
+WHERE amount BETWEEN 1300 AND 1500;
+
+-- Query 3: Delete all tuples at every branch located in Nigdi
+-- This involves deleting from all tables referencing those branches
+-- First, find branches in Nigdi
+-- Delete dependent tuples before deleting from Branch due to FK constraints
+
+-- Delete Borrowers related to loans of Nigdi branches
+DELETE b FROM Borrower b
+JOIN Loan l ON b.loan_no = l.loan_no
+JOIN Branch br ON l.branch_name = br.branch_name
+WHERE br.branch_city = 'Nigdi';
+
+-- Delete Loans in Nigdi branches
+DELETE l FROM Loan l
+JOIN Branch br ON l.branch_name = br.branch_name
+WHERE br.branch_city = 'Nigdi';
+
+-- Delete Depositors with accounts in Nigdi branches
+DELETE d FROM Depositor d
+JOIN Account a ON d.acc_no = a.acc_no
+JOIN Branch br ON a.branch_name = br.branch_name
+WHERE br.branch_city = 'Nigdi';
+
+-- Delete Accounts in Nigdi branches
+DELETE a FROM Account a
+JOIN Branch br ON a.branch_name = br.branch_name
+WHERE br.branch_city = 'Nigdi';
+
+-- Finally delete Branches in Nigdi
+DELETE FROM Branch
+WHERE branch_city = 'Nigdi';
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log
+

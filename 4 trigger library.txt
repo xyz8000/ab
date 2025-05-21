@@ -1,0 +1,68 @@
+
+CREATE TABLE Library (
+    bid INT PRIMARY KEY,
+    bname VARCHAR(100),
+    doi DATE,
+    status CHAR(1),
+    noc INT
+);
+
+
+CREATE TABLE Library_Audit (
+    audit_id INT AUTO_INCREMENT PRIMARY KEY,
+    action_type VARCHAR(10),         
+    bid INT,
+    bname VARCHAR(100),
+    doi DATE,
+    status CHAR(1),
+    noc INT,
+    action_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+
+DELIMITER $$
+
+CREATE TRIGGER trg_library_update
+BEFORE UPDATE ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (action_type, bid, bname, doi, status, noc)
+    VALUES ('UPDATE', OLD.bid, OLD.bname, OLD.doi, OLD.status, OLD.noc);
+END$$
+
+DELIMITER ;
+
+
+DELIMITER $$
+
+CREATE TRIGGER trg_library_delete
+BEFORE DELETE ON Library
+FOR EACH ROW
+BEGIN
+    INSERT INTO Library_Audit (action_type, bid, bname, doi, status, noc)
+    VALUES ('DELETE', OLD.bid, OLD.bname, OLD.doi, OLD.status, OLD.noc);
+END$$
+
+DELIMITER ;
+
+
+INSERT INTO Library VALUES
+(1, 'Introduction to SQL', '2024-04-01', 'I', 5),
+(2, 'Database Management', '2024-03-20', 'I', 3);
+
+
+
+UPDATE Library
+SET noc = 10
+WHERE bid = 1;
+
+DELETE FROM Library
+WHERE bid = 2;
+
+
+SELECT * FROM Library_Audit;
+
+
+sudo rm -f /var/log/syslog
+sudo rm -f /var/log/kern.log
+
