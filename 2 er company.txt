@@ -6,99 +6,75 @@ Perform DDL on Above converted tables.
 4. create sequence on Employee id.
 
 
+-- 1. Create Tables
 
-ER Model (Short)
-Entities:
-Department (DeptID, DeptName)
-Employee (EmpID, EmpName, Salary, DeptID)
-Project (ProjectID, ProjectName, DeptID)
-Works_On (EmpID, ProjectID, HoursWorked)
-Relationships:
-Department — Employee: One-to-Many
-Department — Project: One-to-Many
-Employee — Project: Many-to-Many (via Works_On)
-
-
-
+-- Department table (created first to avoid FK conflict)
 CREATE TABLE Department (
-    DeptID INT PRIMARY KEY,
-    DeptName VARCHAR(100) NOT NULL,
-    ManagerID INT
+    DepartmentId INT PRIMARY KEY,
+    DepartmentName VARCHAR(50) NOT NULL,
+    ManagerId INT
+    -- ManagerId will reference EmployeeId after Employee table is created
 );
 
+-- Employee table
 CREATE TABLE Employee (
-    EmployeeID INT AUTO_INCREMENT PRIMARY KEY,
-    FirstName VARCHAR(50) NOT NULL,
-    LastName VARCHAR(50) NOT NULL,
-    DeptID INT,
-    Salary DECIMAL(10,2),
-    FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+    EmployeeId INT PRIMARY KEY,
+    EmployeeName VARCHAR(50) NOT NULL,
+    DepartmentId INT,
+    Salary DECIMAL(10,2) NOT NULL,
+    JoinDate DATE NOT NULL,
+    FOREIGN KEY (DepartmentId) REFERENCES Department(DepartmentId)
 );
 
-
+-- Add foreign key for ManagerId now (after Employee table is created)
 ALTER TABLE Department
-ADD CONSTRAINT fk_Manager FOREIGN KEY (ManagerID) REFERENCES Employee(EmployeeID);
+ADD CONSTRAINT FK_Manager
+FOREIGN KEY (ManagerId) REFERENCES Employee(EmployeeId);
 
+-- Project table
 CREATE TABLE Project (
-    ProjectID INT PRIMARY KEY,
-    ProjectName VARCHAR(100) NOT NULL,
-    DeptID INT,
-    FOREIGN KEY (DeptID) REFERENCES Department(DeptID)
+    ProjectId INT PRIMARY KEY,
+    ProjectName VARCHAR(50) NOT NULL,
+    StartDate DATE NOT NULL,
+    EndDate DATE
 );
 
+-- WorksOn table
 CREATE TABLE WorksOn (
-    EmployeeID INT,
-    ProjectID INT,
-    Hours DECIMAL(5,2),
-    PRIMARY KEY (EmployeeID, ProjectID),
-    FOREIGN KEY (EmployeeID) REFERENCES Employee(EmployeeID),
-    FOREIGN KEY (ProjectID) REFERENCES Project(ProjectID)
+    EmployeeId INT,
+    ProjectId INT,
+    HoursWorked INT NOT NULL,
+    PRIMARY KEY (EmployeeId, ProjectId),
+    FOREIGN KEY (EmployeeId) REFERENCES Employee(EmployeeId),
+    FOREIGN KEY (ProjectId) REFERENCES Project(ProjectId)
 );
 
+-- 2. Create Views
 
+-- View 1: Employee with Department Info
+CREATE VIEW EmployeeDepartmentView AS
+SELECT e.EmployeeId, e.EmployeeName, d.DepartmentName, e.Salary
+FROM Employee e
+JOIN Department d ON e.DepartmentId = d.DepartmentId;
 
-INSERT INTO Department (DeptID, DeptName) VALUES
-(1, 'HR'),
-(2, 'IT'),
-(3, 'Finance');
+-- View 2: Employees working on Projects
+CREATE VIEW ProjectEmployeeView AS
+SELECT p.ProjectId, p.ProjectName, e.EmployeeName, w.HoursWorked
+FROM Project p
+JOIN WorksOn w ON p.ProjectId = w.ProjectId
+JOIN Employee e ON w.EmployeeId = e.EmployeeId;
 
-INSERT INTO Employee (FirstName, LastName, DeptID, Salary) VALUES
-('Rajesh', 'Kumar', 1, 50000),
-('Anita', 'Sharma', 2, 60000),
-('Sunil', 'Patel', 2, 65000),
-('Pooja', 'Singh', 3, 70000);
+-- 3. Create Index
 
+CREATE INDEX EmployeeId_Index
+ON Employee (DepartmentId ASC, EmployeeId ASC);
 
+-- 4. Create Sequence for EmployeeId
 
-UPDATE Department SET ManagerID = 1 WHERE DeptID = 1;
-UPDATE Department SET ManagerID = 2 WHERE DeptID = 2;
-UPDATE Department SET ManagerID = 4 WHERE DeptID = 3;
-
-INSERT INTO Project (ProjectID, ProjectName, DeptID) VALUES
-(101, 'Project Alpha', 2),
-(102, 'Project Beta', 3);
-
-INSERT INTO WorksOn (EmployeeID, ProjectID, Hours) VALUES
-(2, 101, 40),
-(3, 101, 20),
-(4, 102, 35);
-
-
-
-CREATE VIEW EmployeeDeptView AS
-SELECT E.EmployeeID, E.FirstName, E.LastName, D.DeptName
-FROM Employee E
-JOIN Department D ON E.DeptID = D.DeptID;
-
-CREATE VIEW ProjectDeptView AS
-SELECT P.ProjectID, P.ProjectName, D.DeptName, D.ManagerID
-FROM Project P
-JOIN Department D ON P.DeptID = D.DeptID;
-
-
-
-CREATE INDEX EmployeeId ON Department (DeptID ASC, ManagerID ASC);
-
+CREATE SEQUENCE EmployeeId_Seq
+START WITH 101
+INCREMENT BY 1
+NOCACHE;
 
 sudo rm -f /var/log/syslog
 sudo rm -f /var/log/kern.log
