@@ -5,97 +5,115 @@ Perform DDL on above converted tables.
 3. Create index called Lib_Index1. Entries should be in ascending order by Author name.
 4. Create sequence on Bookid.
 
-Entities: Author, Publisher, Member, Book, Borrow
-Keys:
-Author: AuthorID (PK)
-Publisher: PublisherID (PK)
-Member: MemberID (PK)
-Book: BookID (PK), AuthorID (FK), PublisherID (FK)
-Borrow: BorrowID (PK), BookID (FK), MemberID (FK)
-  Relations:
-Author 1—M Book
-Publisher 1—M Book
-Member 1—M Borrow
-Book 1—M Borrow
+-- Drop tables if exist to avoid conflicts
+DROP TABLE IF EXISTS Fine;
+DROP TABLE IF EXISTS Borrow;
+DROP TABLE IF EXISTS Book;
+DROP TABLE IF EXISTS Member;
+DROP TABLE IF EXISTS Librarian;
 
+-- 1. Create Tables based on ERD entities
 
--- Create tables with constraints
-
-CREATE TABLE Author (
-    AuthorID INT PRIMARY KEY,
-    AuthorName VARCHAR(100) NOT NULL
-);
-
-CREATE TABLE Publisher (
-    PublisherID INT PRIMARY KEY,
-    PublisherName VARCHAR(100) NOT NULL
+CREATE TABLE Book (
+    BookID INT AUTO_INCREMENT PRIMARY KEY,
+    Title VARCHAR(100) NOT NULL,
+    Author VARCHAR(100) NOT NULL,
+    Publisher VARCHAR(100),
+    Year YEAR
 );
 
 CREATE TABLE Member (
     MemberID INT PRIMARY KEY,
-    MemberName VARCHAR(100) NOT NULL,
-    Address VARCHAR(200)
-);
-
-CREATE TABLE Book (
-    BookID INT AUTO_INCREMENT PRIMARY KEY,
-    Title VARCHAR(200) NOT NULL,
-    AuthorID INT,
-    PublisherID INT,
-    FOREIGN KEY (AuthorID) REFERENCES Author(AuthorID),
-    FOREIGN KEY (PublisherID) REFERENCES Publisher(PublisherID)
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) UNIQUE,
+    Phone VARCHAR(15)
 );
 
 CREATE TABLE Borrow (
-    BorrowID INT AUTO_INCREMENT PRIMARY KEY,
-    BookID INT,
-    MemberID INT,
-    BorrowDate DATE,
+    BorrowID INT PRIMARY KEY,
+    BookID INT NOT NULL,
+    MemberID INT NOT NULL,
+    BorrowDate DATE NOT NULL,
     ReturnDate DATE,
+    Status ENUM('Issued', 'Returned') DEFAULT 'Issued',
     FOREIGN KEY (BookID) REFERENCES Book(BookID),
     FOREIGN KEY (MemberID) REFERENCES Member(MemberID)
 );
 
--- Insert sample data
+CREATE TABLE Fine (
+    FineID INT PRIMARY KEY,
+    BorrowID INT NOT NULL,
+    Amount DECIMAL(8,2) NOT NULL,
+    FineDate DATE NOT NULL,
+    FOREIGN KEY (BorrowID) REFERENCES Borrow(BorrowID)
+);
 
-INSERT INTO Author (AuthorID, AuthorName) VALUES
-(1, 'Ruskin Bond'),
-(2, 'Amish Tripathi'),
-(3, 'Arundhati Roy');
+CREATE TABLE Librarian (
+    LibrarianID INT PRIMARY KEY,
+    Name VARCHAR(100) NOT NULL,
+    Email VARCHAR(100) UNIQUE
+);
 
-INSERT INTO Publisher (PublisherID, PublisherName) VALUES
-(1, 'Penguin India'),
-(2, 'HarperCollins');
+-- 2. Insert Sample Data
 
-INSERT INTO Member (MemberID, MemberName, Address) VALUES
-(101, 'Rajesh Kumar', 'Delhi'),
-(102, 'Anita Sharma', 'Mumbai');
+INSERT INTO Book (Title, Author, Publisher, Year) VALUES
+('Introduction to SQL', 'John Doe', 'Tech Books', 2022),
+('Database Management', 'Jane Smith', 'DataPub', 2020),
+('Programming in Java', 'Emily Clark', 'CodePress', 2019),
+('Web Development Essentials', 'Michael Brown', 'WebPub', 2021),
+('Advanced Python', 'Samantha Green', 'CodePress', 2023);
 
-INSERT INTO Book (Title, AuthorID, PublisherID) VALUES
-('The Blue Umbrella', 1, 1),
-('The Immortals of Meluha', 2, 2),
-('The God of Small Things', 3, 1);
+INSERT INTO Member (MemberID, Name, Email, Phone) VALUES
+(101, 'Rahul Kumar', 'rahul@example.com', '1234567890'),
+(102, 'Neha Sharma', 'neha@example.com', '2345678901'),
+(103, 'Amit Singh', 'amit@example.com', '3456789012'),
+(104, 'Priya Patel', 'priya@example.com', '4567890123'),
+(105, 'Ravi Gupta', 'ravi@example.com', '5678901234');
 
-INSERT INTO Borrow (BookID, MemberID, BorrowDate, ReturnDate) VALUES
-(1, 101, '2025-05-01', '2025-05-10'),
-(3, 102, '2025-05-05', NULL);
+INSERT INTO Librarian (LibrarianID, Name, Email) VALUES
+(1, 'Alice Johnson', 'alice@library.com'),
+(2, 'Bob Williams', 'bob@library.com');
 
--- Create views using JOIN
+INSERT INTO Borrow (BorrowID, BookID, MemberID, BorrowDate, ReturnDate, Status) VALUES
+(1001, 1, 101, '2024-04-01', NULL, 'Issued'),
+(1002, 2, 102, '2024-03-20', '2024-04-05', 'Returned'),
+(1003, 3, 103, '2024-03-10', NULL, 'Issued'),
+(1004, 4, 104, '2024-04-05', NULL, 'Issued'),
+(1005, 5, 105, '2024-04-10', NULL, 'Issued');
 
-CREATE VIEW BookAuthors AS
-SELECT B.BookID, B.Title, A.AuthorName
-FROM Book B
-JOIN Author A ON B.AuthorID = A.AuthorID;
+INSERT INTO Fine (FineID, BorrowID, Amount, FineDate) VALUES
+(5001, 1002, 0, '2024-04-05');
 
-CREATE VIEW MemberBorrowedBooks AS
-SELECT M.MemberName, B.Title, BR.BorrowDate, BR.ReturnDate
-FROM Member M
-JOIN Borrow BR ON M.MemberID = BR.MemberID
-JOIN Book B ON BR.BookID = B.BookID;
+-- 3. Create Views with join condition
 
--- Create index on AuthorName ascending
+CREATE VIEW BookBorrowInfo AS
+SELECT 
+    b.BookID, b.Title, b.Author, m.Name AS BorrowerName, br.BorrowDate, br.Status
+FROM Book b
+JOIN Borrow br ON b.BookID = br.BookID
+JOIN Member m ON br.MemberID = m.MemberID;
 
-CREATE INDEX Lib_Index1 ON Author(AuthorName ASC);
+CREATE VIEW FineDetails AS
+SELECT 
+    f.FineID, m.Name AS MemberName, bk.Title AS BookTitle, f.Amount, f.FineDate
+FROM Fine f
+JOIN Borrow br ON f.BorrowID = br.BorrowID
+JOIN Member m ON br.MemberID = m.MemberID
+JOIN Book bk ON br.BookID = bk.BookID;
+
+-- 4. Create Index Lib_Index1 on Author ascending
+
+CREATE INDEX Lib_Index1 ON Book (Author ASC);
+
+-- 5. Simulate sequence on BookID with AUTO_INCREMENT (already done in Book table)
+
+-- To test sequence (AUTO_INCREMENT):
+INSERT INTO Book (Title, Author, Publisher, Year) VALUES ('New Book Title', 'New Author', 'New Publisher', 2025);
+
+-- Query to check inserted BookID:
+SELECT BookID, Title FROM Book WHERE Title = 'New Book Title';
+
+
 
 
 sudo rm -f /var/log/syslog
