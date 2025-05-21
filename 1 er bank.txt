@@ -5,113 +5,140 @@ Perform DDL on above converted tables.
 3. Create index called CustomerId. Entries should be in ascending order by customer name.
 4. Create sequence on Acctno.
 
-ER Model for Bank Database (Short)
-Entities:
-Customer (CustomerID, Name, Address, Phone)
-Branch (BranchID, BranchName, Location)
-Account (AcctNo, Balance, CustomerID, BranchID)
-Loan (LoanID, Amount, CustomerID)
-Transaction (TxnID, AcctNo, TxnType, Amount, TxnDate)
-Relationships:
-Customer — Account: One-to-Many
-Branch — Account: One-to-Many
-Customer — Loan: One-to-Many
-Account — Transaction: One-to-Many
+-- Drop previous tables and views if they exist
+DROP VIEW IF EXISTS ViewCustomerAccounts, ViewCustomerLoans;
+DROP TABLE IF EXISTS Loan, Transaction, Account, Customer, Branch, AcctSequence;
 
-
-
-
-CREATE TABLE Customer (
-    CustomerID INT AUTO_INCREMENT PRIMARY KEY,
-    Name VARCHAR(100) NOT NULL,
-    Address VARCHAR(200),
-    Phone VARCHAR(15)
-);
+-- 1. Create tables with all constraints
 
 CREATE TABLE Branch (
-    BranchID INT AUTO_INCREMENT PRIMARY KEY,
-    BranchName VARCHAR(100) NOT NULL,
-    Location VARCHAR(100)
+    branch_id INT PRIMARY KEY,
+    branch_name VARCHAR(100) NOT NULL,
+    city VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Customer (
+    customer_id INT PRIMARY KEY,
+    customer_name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15),
+    address VARCHAR(255)
 );
 
 CREATE TABLE Account (
-    AcctNo INT AUTO_INCREMENT PRIMARY KEY,
-    Balance DECIMAL(12,2) CHECK (Balance >= 0),
-    CustomerID INT,
-    BranchID INT,
-    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID),
-    FOREIGN KEY (BranchID) REFERENCES Branch(BranchID)
-);
-
-CREATE TABLE Loan (
-    LoanID INT AUTO_INCREMENT PRIMARY KEY,
-    Amount DECIMAL(10,2) NOT NULL CHECK (Amount > 0),
-    CustomerID INT,
-    FOREIGN KEY (CustomerID) REFERENCES Customer(CustomerID)
+    acct_no INT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    branch_id INT NOT NULL,
+    balance DECIMAL(12,2) NOT NULL,
+    acct_type VARCHAR(20),
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (branch_id) REFERENCES Branch(branch_id)
 );
 
 CREATE TABLE Transaction (
-    TxnID INT AUTO_INCREMENT PRIMARY KEY,
-    AcctNo INT,
-    TxnType VARCHAR(20) CHECK (TxnType IN ('Deposit', 'Withdrawal', 'Transfer')),
-    Amount DECIMAL(10,2) CHECK (Amount > 0),
-    TxnDate DATE,
-    FOREIGN KEY (AcctNo) REFERENCES Account(AcctNo)
+    txn_id INT AUTO_INCREMENT PRIMARY KEY,
+    acct_no INT NOT NULL,
+    txn_type VARCHAR(10), -- 'credit' or 'debit'
+    amount DECIMAL(10,2),
+    txn_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (acct_no) REFERENCES Account(acct_no)
 );
 
+CREATE TABLE Loan (
+    loan_id INT PRIMARY KEY,
+    customer_id INT NOT NULL,
+    branch_id INT NOT NULL,
+    amount DECIMAL(12,2),
+    status VARCHAR(20), -- approved, pending, closed
+    FOREIGN KEY (customer_id) REFERENCES Customer(customer_id),
+    FOREIGN KEY (branch_id) REFERENCES Branch(branch_id)
+);
 
-INSERT INTO Customer (Name, Address, Phone) VALUES
-('Rajesh Kumar', '123 MG Road, Bengaluru, Karnataka', '9876543210'),
-('Anita Sharma', '45 Connaught Place, New Delhi', '9123456780'),
-('Suresh Patel', '22 Marine Drive, Mumbai, Maharashtra', '9988776655'),
-('Priya Singh', '56 Park Street, Kolkata, West Bengal', '9876512345'),
-('Amit Verma', '89 Residency Road, Pune, Maharashtra', '9012345678');
+-- 2. Insert sample values
+
+INSERT INTO Branch VALUES
+(1, 'Central Branch', 'Delhi'),
+(2, 'MG Road Branch', 'Pune'),
+(3, 'Park Street Branch', 'Kolkata');
+
+INSERT INTO Customer VALUES
+(101, 'Rahul Sharma', '9876543210', 'Delhi'),
+(102, 'Neha Desai', '9823456789', 'Mumbai'),
+(103, 'Amit Verma', '9898989898', 'Pune'),
+(104, 'Sneha Kulkarni', '9845012345', 'Bangalore');
+
+INSERT INTO Account VALUES
+(1001, 101, 1, 80000.00, 'Savings'),
+(1002, 102, 2, 25000.00, 'Current'),
+(1003, 103, 2, 30000.00, 'Savings'),
+(1004, 104, 3, 150000.00, 'Savings');
+
+INSERT INTO Transaction (acct_no, txn_type, amount) VALUES
+(1001, 'credit', 5000),
+(1001, 'debit', 2000),
+(1002, 'credit', 7000),
+(1003, 'debit', 1000),
+(1004, 'credit', 15000);
+
+INSERT INTO Loan VALUES
+(201, 101, 1, 150000, 'approved'),
+(202, 102, 2, 200000, 'pending'),
+(203, 104, 3, 500000, 'approved');
+
+-- 3. Create views using join
+
+CREATE VIEW ViewCustomerAccounts AS
+SELECT 
+    c.customer_id, 
+    c.customer_name, 
+    a.acct_no, 
+    a.acct_type, 
+    a.balance, 
+    b.branch_name
+FROM 
+    Customer c
+JOIN 
+    Account a ON c.customer_id = a.customer_id
+JOIN 
+    Branch b ON a.branch_id = b.branch_id;
+
+CREATE VIEW ViewCustomerLoans AS
+SELECT 
+    c.customer_id, 
+    c.customer_name, 
+    l.loan_id, 
+    l.amount, 
+    l.status, 
+    b.branch_name
+FROM 
+    Customer c
+JOIN 
+    Loan l ON c.customer_id = l.customer_id
+JOIN 
+    Branch b ON l.branch_id = b.branch_id;
+
+-- 4. Create index on Customer name (CustomerId index)
+CREATE INDEX CustomerId ON Customer (customer_name ASC);
+
+-- 5. Simulate sequence for acct_no (using auto-increment helper table)
+CREATE TABLE AcctSequence (
+    next_acct INT AUTO_INCREMENT PRIMARY KEY
+);
+
+-- Example usage:
+-- INSERT INTO AcctSequence VALUES (NULL);
+-- SELECT LAST_INSERT_ID(); -- Gives next account number to be used manually
+-- Check views
+SELECT * FROM ViewCustomerAccounts;
+SELECT * FROM ViewCustomerLoans;
+
+-- Check index (via explain if needed)
+EXPLAIN SELECT * FROM Customer WHERE customer_name = 'Neha Desai';
+
+-- Generate next acct_no manually
+INSERT INTO AcctSequence VALUES (NULL);
+SELECT LAST_INSERT_ID(); -- Next acct_no
 
 
-INSERT INTO Branch (BranchName, Location) VALUES
-('MG Road Branch', 'Bengaluru'),
-('Connaught Place Branch', 'New Delhi'),
-('Marine Drive Branch', 'Mumbai'),
-('Park Street Branch', 'Kolkata'),
-('Residency Road Branch', 'Pune');
-
-
-INSERT INTO Account (Balance, CustomerID, BranchID) VALUES
-(50000.00, 1, 1),
-(75000.00, 2, 2),
-(62000.00, 3, 3),
-(83000.00, 4, 4),
-(40000.00, 5, 5);
-
-
-INSERT INTO Loan (Amount, CustomerID) VALUES
-(200000.00, 1),
-(150000.00, 3),
-(300000.00, 4);
-
-
-INSERT INTO Transaction (AcctNo, TxnType, Amount, TxnDate) VALUES
-(1, 'Deposit', 10000.00, '2025-05-01'),
-(2, 'Withdrawal', 5000.00, '2025-05-03'),
-(3, 'Deposit', 7000.00, '2025-05-05'),
-(4, 'Transfer', 12000.00, '2025-05-10'),
-(5, 'Deposit', 8000.00, '2025-05-12');
-
-
-
-CREATE VIEW CustomerAccounts AS
-SELECT C.CustomerID, C.Name, A.AcctNo, A.Balance, B.BranchName
-FROM Customer C
-JOIN Account A ON C.CustomerID = A.CustomerID
-JOIN Branch B ON A.BranchID = B.BranchID;
-
-CREATE VIEW CustomerLoans AS
-SELECT C.CustomerID, C.Name, L.LoanID, L.Amount
-FROM Customer C
-JOIN Loan L ON C.CustomerID = L.CustomerID;
-
-
-CREATE INDEX CustomerNameIndex ON Customer(Name);
 
 sudo rm -f /var/log/syslog
 sudo rm -f /var/log/kern.log
