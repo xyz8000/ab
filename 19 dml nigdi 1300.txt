@@ -2,6 +2,13 @@
 CREATE DATABASE IF NOT EXISTS bankdb;
 USE bankdb;
 
+-- 2. Drop existing tables if they exist
+DROP TABLE IF EXISTS Borrower;
+DROP TABLE IF EXISTS Loan;
+DROP TABLE IF EXISTS Depositor;
+DROP TABLE IF EXISTS Customer;
+DROP TABLE IF EXISTS Account;
+DROP TABLE IF EXISTS Branch;
 
 -- 3. Create tables
 
