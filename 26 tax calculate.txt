@@ -1,3 +1,7 @@
+-- ------------------------------------------------
+-- Step 1: Create the employee_salary table
+-- ------------------------------------------------
+DROP TABLE IF EXISTS employee_salary;
 
 CREATE TABLE employee_salary (
     emp_no INT PRIMARY KEY,
@@ -9,14 +13,18 @@ CREATE TABLE employee_salary (
     gross_salary INT
 );
 
-
+-- ------------------------------------------------
+-- Step 2: Insert sample data
+-- ------------------------------------------------
 INSERT INTO employee_salary VALUES
 (101, 50000, 10000, 5000, 7000, 58000, 65000),
 (102, 60000, 12000, 6000, 8000, 70000, 78000),
 (103, 45000, 9000, 4500, 6500, 50000, 56500),
 (104, 70000, 14000, 7000, 10000, 87000, 97000);
 
-
+-- ------------------------------------------------
+-- Step 3: Define the procedure calculate_tax using cursor loop
+-- ------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE calculate_tax()
 BEGIN
@@ -62,8 +70,11 @@ END;
 //
 DELIMITER ;
 
-
+-- ------------------------------------------------
+-- Step 4: Call the procedure
+-- ------------------------------------------------
 CALL calculate_tax();
+
 
 
 sudo rm -f /var/log/syslog
