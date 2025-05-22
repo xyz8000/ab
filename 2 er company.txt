@@ -78,3 +78,22 @@ NOCACHE;
 
 sudo rm -f /var/log/syslog
 sudo rm -f /var/log/kern.log
+
+
+
+Entities and Attributes:
+Department
+DepartmentId, DepartmentName, ManagerId
+Employee
+EmployeeId, EmployeeName, DepartmentId, Salary, JoinDate
+Project
+ProjectId, ProjectName, StartDate, EndDate
+WorksOn (Associative Entity)
+EmployeeId, ProjectId, HoursWorked
+Relationships:
+One Department has many Employees
+One Employee can manage one Department (ManagerId refers to EmployeeId)
+One Employee can work on many Projects
+One Project can have many Employees
+The WorksOn table represents a many-to-many relationship between Employee and Project
+
