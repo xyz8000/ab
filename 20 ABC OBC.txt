@@ -2,6 +2,12 @@
 CREATE DATABASE IF NOT EXISTS banking;
 USE banking;
 
+-- 2. Drop existing tables to start fresh
+DROP TABLE IF EXISTS borrow;
+DROP TABLE IF EXISTS deposit;
+DROP TABLE IF EXISTS customers;
+DROP TABLE IF EXISTS branch;
+
 -- 3. Create tables
 
 CREATE TABLE branch (
@@ -79,6 +85,7 @@ WHERE bname = 'OBC';
 -- Query 5: Find the number of tuples (rows) in the customers table
 SELECT COUNT(*) AS total_customers 
 FROM customers;
+
 
 
 sudo rm -f /var/log/syslog
