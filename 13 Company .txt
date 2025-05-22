@@ -1,3 +1,16 @@
+-- ========================
+-- 1. Drop existing tables
+-- ========================
+DROP TABLE IF EXISTS DEPENDENT;
+DROP TABLE IF EXISTS WORKS_ON;
+DROP TABLE IF EXISTS PROJECT;
+DROP TABLE IF EXISTS DEPT_LOCATIONS;
+DROP TABLE IF EXISTS DEPARTMENT;
+DROP TABLE IF EXISTS EMPLOYEE;
+
+-- ========================
+-- 2. Create Tables
+-- ========================
 
 CREATE TABLE EMPLOYEE (
     Fname VARCHAR(50) NOT NULL,
