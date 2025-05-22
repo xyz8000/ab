@@ -2,6 +2,11 @@
 CREATE DATABASE IF NOT EXISTS banking;
 USE banking;
 
+-- Drop tables if they exist (to start fresh)
+DROP TABLE IF EXISTS Borrow;
+DROP TABLE IF EXISTS Deposit;
+DROP TABLE IF EXISTS Customers;
+DROP TABLE IF EXISTS Branch;
 
 -- Create tables with primary keys and foreign keys
 
@@ -93,6 +98,7 @@ WHERE d.cname IN (
   FROM Customers
   WHERE city = 'Nagpur'
 );
+
 
 
 sudo rm -f /var/log/syslog
