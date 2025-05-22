@@ -118,3 +118,23 @@ SELECT BookID, Title FROM Book WHERE Title = 'New Book Title';
 
 sudo rm -f /var/log/syslog
 sudo rm -f /var/log/kern.log
+
+
+
+Entities and Attributes:
+Book
+BookID, Title, Author, Publisher, Year
+Member
+MemberID, Name, Email, Phone
+Borrow
+BorrowID, BookID, MemberID, BorrowDate, ReturnDate, Status
+Fine
+FineID, BorrowID, Amount, FineDate
+Librarian
+LibrarianID, Name, Email
+Relationships:
+One Book can be borrowed many times (One-to-Many)
+One Member can borrow many books (One-to-Many)
+One Borrow record can result in one Fine (One-to-One)
+Librarian is an independent entity not directly linked to other tables
+
