@@ -142,3 +142,22 @@ SELECT LAST_INSERT_ID(); -- Next acct_no
 
 sudo rm -f /var/log/syslog
 sudo rm -f /var/log/kern.log
+
+
+Entities and Attributes:
+Branch
+branch_id, branch_name, city
+Customer
+customer_id, customer_name, phone, address
+Account
+acct_no, customer_id, branch_id, balance, acct_type
+Transaction
+txn_id, acct_no, txn_type, amount, txn_date
+Loan
+loan_id, customer_id, branch_id, amount, status
+Relationships:
+One Branch can have many Accounts
+One Branch can have many Loans
+One Customer can have many Accounts
+One Customer can have many Loans
+One Account can have many Transactions
