@@ -1,4 +1,9 @@
 
+-- ------------------------------------------------
+-- Create tables for borrower and fine (library system)
+-- ------------------------------------------------
+DROP TABLE IF EXISTS fine;
+DROP TABLE IF EXISTS borrower;
 
 CREATE TABLE borrower (
     rollin INT PRIMARY KEY,
@@ -22,7 +27,9 @@ INSERT INTO borrower VALUES
 (103, 'amit', '2024-03-10', 'programming in java', 'I'),
 (104, 'priya', '2024-04-05', 'web development essentials', 'I');
 
-
+-- ------------------------------------------------
+-- Procedure: process_fine to calculate fine & update status
+-- ------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE process_fine(
     IN user_roll INT,
@@ -79,7 +86,9 @@ DELIMITER ;
 
 
 
-
+-- ------------------------------------------------
+-- Create table for employee_salary (salary & tax calculation)
+-- ------------------------------------------------
 DROP TABLE IF EXISTS employee_salary;
 
 CREATE TABLE employee_salary (
@@ -99,8 +108,9 @@ INSERT INTO employee_salary VALUES
 (103, 45000, 9000, 4500, 6500, 50000, 56500),
 (104, 70000, 14000, 7000, 10000, 87000, 97000);
 
-
-
+-- ------------------------------------------------
+-- Procedure: calculate_tax_simple to show tax as 10% of gross salary
+-- ------------------------------------------------
 DELIMITER //
 CREATE PROCEDURE calculate_tax_simple()
 BEGIN
@@ -118,6 +128,7 @@ DELIMITER ;
 
 CALL process_fine(101, 'introduction to sql');
 CALL calculate_tax_simple();
+
 
 
 
