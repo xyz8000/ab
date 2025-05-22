@@ -1,7 +1,15 @@
 
+-- Create and use database
 CREATE DATABASE IF NOT EXISTS bankdb;
 USE bankdb;
 
+-- Drop tables if they already exist
+DROP TABLE IF EXISTS Borrower;
+DROP TABLE IF EXISTS Loan;
+DROP TABLE IF EXISTS Depositor;
+DROP TABLE IF EXISTS Account;
+DROP TABLE IF EXISTS Customer;
+DROP TABLE IF EXISTS Branch;
 
 -- Create Branch table
 CREATE TABLE Branch (
@@ -92,6 +100,9 @@ INSERT INTO Borrower VALUES
 ('Aisha', 202),
 ('Neha', 203);
 
+-- ====================================
+--             QUERIES
+-- ====================================
 
 -- 1. Find the average account balance at each branch
 SELECT branch_name, ROUND(AVG(balance), 2) AS avg_balance
@@ -112,6 +123,7 @@ HAVING AVG(balance) > 12000;
 
 -- 4. Find number of tuples in customer relation
 SELECT COUNT(*) AS total_customers FROM Customer;
+
 
 
 sudo rm -f /var/log/syslog
